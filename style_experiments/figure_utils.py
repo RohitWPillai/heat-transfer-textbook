@@ -138,6 +138,84 @@ def check_overlaps(fig, verbose=True):
     return all_overlaps
 
 
+def check_margins(fig, margin_frac=0.05, verbose=True):
+    """
+    Check that no text element sits too close to the axis boundary.
+
+    Flags any text whose bounding box (in data coords) is within
+    *margin_frac* of the axis limits on any side.  This catches labels
+    placed on or near drawing elements that line up with the boundary
+    (e.g. vessel walls, rectangles drawn at the axis edge).
+
+    Parameters
+    ----------
+    fig : matplotlib Figure
+    margin_frac : float
+        Fraction of the axis span that defines the "danger zone" at each
+        edge.  Default 0.05 (5 %).
+    verbose : bool
+        If True, print each issue found.
+
+    Returns
+    -------
+    list of str
+        One entry per offending element, e.g.
+        ``"Text '$T_\\infty$' within 5% of left edge in axes[0]"``
+    """
+    renderer = fig.canvas.get_renderer()
+    issues = []
+
+    for ax_idx, ax in enumerate(fig.axes):
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        x_margin = (xlim[1] - xlim[0]) * margin_frac
+        y_margin = (ylim[1] - ylim[0]) * margin_frac
+
+        # Collect all text elements
+        texts = []
+        for t in ax.texts:
+            if t.get_text().strip() and t.get_visible():
+                texts.append(t)
+        for lbl in [ax.xaxis.label, ax.yaxis.label, ax.title]:
+            if lbl.get_text().strip() and lbl.get_visible():
+                texts.append(lbl)
+
+        for t in texts:
+            try:
+                bp = t.get_bbox_patch()
+                if bp is not None:
+                    bbox = bp.get_window_extent(renderer).transformed(
+                        ax.transData.inverted())
+                else:
+                    bbox = t.get_window_extent(renderer).transformed(
+                        ax.transData.inverted())
+
+                name = t.get_text()[:25]
+                edges_hit = []
+                if bbox.x0 < xlim[0] + x_margin:
+                    edges_hit.append('left')
+                if bbox.x1 > xlim[1] - x_margin:
+                    edges_hit.append('right')
+                if bbox.y0 < ylim[0] + y_margin:
+                    edges_hit.append('bottom')
+                if bbox.y1 > ylim[1] - y_margin:
+                    edges_hit.append('top')
+
+                if edges_hit:
+                    msg = (f"Text '{name}' within {margin_frac:.0%} of "
+                           f"{'/'.join(edges_hit)} edge in axes[{ax_idx}]")
+                    issues.append(msg)
+                    if verbose:
+                        print(f"⚠️  MARGIN: {msg}")
+            except Exception:
+                pass
+
+    if verbose and not issues:
+        print("✓ No margin issues detected")
+
+    return issues
+
+
 def check_and_save(fig, filepath, dpi=200, raise_on_overlap=False):
     """
     Check for overlaps before saving. Warns or raises if overlaps found.

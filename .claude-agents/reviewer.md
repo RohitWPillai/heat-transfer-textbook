@@ -29,17 +29,25 @@ Scan every paragraph for:
 
 ### 2. Figure Quality (20 pts)
 
-For each Python figure code block, check:
+For each Python figure code block, check **in code**:
+
 - Uses `fig.add_axes([l, b, w, h])`, not `plt.subplots()`
 - Uses `PALETTE['text']` for text colour, never pure black (`'k'`, `'black'`, `color='#000000'`)
 - Uses `THERMAL_CMAP` or PALETTE colours, never `plt.cm.coolwarm` or other matplotlib defaults
 - Includes `_check_overlaps(fig)` or `check_overlaps(fig)` call
+- Includes `_check_margins(fig)` or `check_margins(fig)` call
 - Pill spacing >= 0.55 data units between centres
 - Vertical slab orientation: hot=top, cold=bottom (not horizontal)
-- Text-on-element: no labels placed in the path of arrows or lines
 - Font sizes: all text >= 11pt
 - Caption (`fig-cap`) describes physical insight, not just "Plot of X vs Y"
 - `code-fold: true` present in block header
+
+Also check **in the rendered PNG** (spatial layout):
+
+- No label placed on or adjacent to a drawing element (wall, rectangle, boundary line, vessel edge). Labels must have clear space on all sides.
+- No label within the outer ~5% of the axis limits (i.e., crowded against the figure boundary)
+- Text-on-element: no labels placed in the path of arrows or lines
+- Every label is fully visible (not clipped by axis bounds)
 
 ### 3. Code Quality (20 pts)
 
@@ -113,6 +121,8 @@ For each Python figure code block, check:
 - Be specific: cite line numbers, quote the problematic text, name the violated rule
 - Every em-dash is a [MUST FIX] — no exceptions
 - Every missing `_check_overlaps()` call is a [MUST FIX]
+- Every missing `_check_margins()` call is a [MUST FIX]
+- Any label visibly on top of or touching a drawing element (wall, boundary) is a [MUST FIX]
 - Missing learning objectives or symbol tables are [SHOULD FIX]
 - Do not suggest adding content beyond the chapter's scope
 - Do not suggest stylistic changes that contradict the writing guidelines

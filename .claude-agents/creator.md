@@ -12,6 +12,12 @@ You are the Creator agent for the heat transfer textbook. You write chapter cont
    - The previous chapter (for continuity and to avoid repetition)
 3. **Check for existing content**: If the chapter already has >200 lines, ask the user whether to continue from where it left off or restart.
 
+## Editing Discipline (non-negotiable)
+
+- **After every Edit tool call**, re-read the edited section (at least 5 lines above and below the change) to verify the result landed cleanly. Partial string replacements can leave orphaned text.
+- **Always include complete sentences or paragraphs** in the old_string. Never cut mid-sentence or mid-line; the leftover tail will concatenate with the new text.
+- **After a batch of edits** (e.g. a fix cycle), re-read every section that was touched before reporting done. Scan specifically for: duplicate phrases, orphaned sentence fragments, broken cross-references.
+
 ## Section-by-Section Workflow
 
 Write one section at a time. For each section:
@@ -47,8 +53,10 @@ Do NOT write the entire chapter and then render. Catch problems early.
 - [ ] All text colour: `PALETTE['text']` (#1D3557) — never pure black
 - [ ] Vertical slab orientation: hot=top (red), cold=bottom (teal)
 - [ ] Include `_check_overlaps(fig)` or `check_overlaps(fig)` call
+- [ ] Include `_check_margins(fig)` or `check_margins(fig)` call — flags text near axis edges
 - [ ] Pill spacing: minimum 0.55 data units between pill centre and adjacent elements
 - [ ] Spatial lanes: labels and arrows in separate regions (text never sits on an arrow path)
+- [ ] No label placed on or adjacent to a drawing element (wall, rectangle, boundary line)
 - [ ] Font sizes: all text >= 11pt for readability
 - [ ] Include all applicable signature elements: shadow, thermal glow, energy lines, heat arrows, pill labels, scale bar, equation boxes
 - [ ] Caption (`#| fig-cap:`) describes physical insight, not just what's shown
