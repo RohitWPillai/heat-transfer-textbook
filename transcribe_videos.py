@@ -13,8 +13,9 @@ from pathlib import Path
 from faster_whisper import WhisperModel
 
 # Configuration
-VIDEO_DIR = Path("/Users/rpillai/Library/CloudStorage/Dropbox/Teaching/Thermofluids/2021/CAPTURES")
-OUTPUT_DIR = Path("/Users/rpillai/Library/CloudStorage/Dropbox/PERSONAL-PROJECTS/heat-transfer-textbook/transcripts/raw")
+# VIDEO_DIR: set this to the location of your lecture video captures
+VIDEO_DIR = Path(os.environ.get("HT_VIDEO_DIR", ""))
+OUTPUT_DIR = Path(__file__).resolve().parent / "transcripts" / "raw"
 
 # Model size: "tiny", "base", "small", "medium", "large-v3"
 # Smaller = faster but less accurate. "small" is a good balance.

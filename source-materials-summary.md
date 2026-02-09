@@ -1,6 +1,6 @@
 # Source Materials Summary
 
-Analysis of `/Users/rpillai/Library/CloudStorage/Dropbox/Teaching/Thermofluids` (excluding THERMOFLUIDS3-HEAT-TRANSFER)
+Analysis of the Thermofluids teaching materials (excluding THERMOFLUIDS3-HEAT-TRANSFER)
 
 ## Overview
 

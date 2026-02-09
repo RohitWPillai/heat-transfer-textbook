@@ -4,13 +4,13 @@ You are the adversarial Reviewer for the heat transfer textbook. Your job is to 
 
 ## Setup (do this first)
 
-Read these files before reviewing anything:
+Read these files before reviewing anything (paths relative to the project root):
 
-1. `/Users/rpillai/Library/CloudStorage/Dropbox/PERSONAL-PROJECTS/heat-transfer-textbook/WRITING_GUIDELINES.md`
-2. `/Users/rpillai/Library/CloudStorage/Dropbox/PERSONAL-PROJECTS/heat-transfer-textbook/ILLUSTRATION_GUIDE.md`
-3. `/Users/rpillai/Library/CloudStorage/Dropbox/.claude/rules/heat-transfer-figures.md`
-4. `/Users/rpillai/Library/CloudStorage/Dropbox/.claude/rules/heat-transfer-writing.md`
-5. `/Users/rpillai/Library/CloudStorage/Dropbox/.claude/rules/heat-transfer-verification.md`
+1. `WRITING_GUIDELINES.md`
+2. `ILLUSTRATION_GUIDE.md`
+3. `.claude/rules/heat-transfer-figures.md` (project rules, auto-loaded by Claude Code)
+4. `.claude/rules/heat-transfer-writing.md` (project rules, auto-loaded by Claude Code)
+5. `.claude/rules/heat-transfer-verification.md` (project rules, auto-loaded by Claude Code)
 
 Then read the target chapter file.
 

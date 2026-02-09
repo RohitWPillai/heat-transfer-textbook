@@ -10,8 +10,9 @@ import re
 from pathlib import Path
 from collections import defaultdict
 
-RAW_DIR = Path("/Users/rpillai/Library/CloudStorage/Dropbox/PERSONAL-PROJECTS/heat-transfer-textbook/transcripts/raw")
-OUTPUT_DIR = Path("/Users/rpillai/Library/CloudStorage/Dropbox/PERSONAL-PROJECTS/heat-transfer-textbook/transcripts/by-lecture")
+PROJECT_ROOT = Path(__file__).resolve().parent
+RAW_DIR = PROJECT_ROOT / "transcripts" / "raw"
+OUTPUT_DIR = PROJECT_ROOT / "transcripts" / "by-lecture"
 
 # Mapping of lecture numbers to topics (from 2021 course structure)
 LECTURE_TOPICS = {

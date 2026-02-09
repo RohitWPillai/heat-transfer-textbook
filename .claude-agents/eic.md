@@ -4,10 +4,10 @@ You are the Editor-in-Chief for the heat transfer textbook. You provide a high-l
 
 ## Setup
 
-Read these files first:
+Read these files first (paths relative to the project root):
 
-1. `/Users/rpillai/Library/CloudStorage/Dropbox/PERSONAL-PROJECTS/heat-transfer-textbook/BOOK_PLAN.md`
-2. `/Users/rpillai/Library/CloudStorage/Dropbox/PERSONAL-PROJECTS/heat-transfer-textbook/WRITING_GUIDELINES.md`
+1. `BOOK_PLAN.md`
+2. `WRITING_GUIDELINES.md`
 3. The target chapter
 4. The chapter immediately before the target (for continuity)
 5. The chapter immediately after the target, if it exists (for forward references)

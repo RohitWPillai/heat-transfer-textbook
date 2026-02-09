@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Quick test: transcribe one short video to verify setup works."""
 
+import os
 from pathlib import Path
 from faster_whisper import WhisperModel
 
-VIDEO = Path("/Users/rpillai/Library/CloudStorage/Dropbox/Teaching/Thermofluids/2021/CAPTURES/WEEK1/1.0Welcome.mp4")
-OUTPUT_DIR = Path("/Users/rpillai/Library/CloudStorage/Dropbox/PERSONAL-PROJECTS/heat-transfer-textbook/transcripts/raw")
+# Set HT_VIDEO_DIR environment variable to your video captures folder
+VIDEO = Path(os.environ.get("HT_VIDEO_DIR", "")) / "WEEK1" / "1.0Welcome.mp4"
+OUTPUT_DIR = Path(__file__).resolve().parent / "transcripts" / "raw"
 
 print("Loading Whisper model (small)...")
 model = WhisperModel("small", device="cpu", compute_type="int8")
