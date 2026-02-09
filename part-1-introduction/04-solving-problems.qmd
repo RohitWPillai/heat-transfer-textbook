@@ -388,12 +388,12 @@ for y_offset in [-2.5, -1.0, 0.5, 2.0]:
                 arrowprops=dict(arrowstyle='->', color=PALETTE['cool'],
                                lw=1.2, alpha=0.5))
 
-# Gas temperature label
-ax.text(-3.7, 3.2, r'$T_\infty$', fontsize=14, ha='center', va='center',
+# Gas temperature label (positioned well inside the vessel, away from wall)
+ax.text(-2.8, 3.5, r'$T_\infty$', fontsize=14, ha='center', va='center',
         color='white', fontweight='bold',
         bbox=dict(boxstyle='round,pad=0.3', facecolor=PALETTE['cool'],
                  edgecolor='none'), zorder=10)
-ax.text(-3.7, 2.5, r'\textit{gas flow}', fontsize=11, ha='center',
+ax.text(-2.8, 2.9, r'\textit{gas flow}', fontsize=11, ha='center',
         color=PALETTE['cool'])
 
 # ========== Sphere ==========
@@ -699,7 +699,7 @@ The gap between the two curves tells us how much radiation matters. At 500 K the
 
 ## What Happens Next?
 
-We cannot yet *predict* $h$ from first principles: we assumed a value above to preview the solution. The rest of this book fills in that missing piece. Part II develops the convection theory needed to find $h$ for various geometries, including flow over spheres. Part III tackles conduction problems where the temperature varies inside the solid (i.e., when the lumped capacitance assumption fails). Part IV covers radiation exchange in detail. we lack a value for $h$ and the equation is nonlinear. The rest of this book fills in those missing pieces. Part II develops the convection theory needed to find $h$ for various geometries, including flow over spheres. Part III tackles conduction problems where the temperature varies inside the solid (i.e., when the lumped capacitance assumption fails). Part IV covers radiation exchange in detail.
+We cannot yet *predict* $h$ from first principles: we assumed a value above to preview the solution. The rest of this book fills in that missing piece. Part II develops the convection theory needed to find $h$ for various geometries, including flow over spheres. Part III tackles conduction problems where the temperature varies inside the solid (i.e., when the lumped capacitance assumption fails). Part IV covers radiation exchange in detail.
 
 The framework from this chapter applies to every one of those problems. The physics get richer, but the approach stays the same: read, classify, sketch, assume, balance, substitute, check, solve.
 
