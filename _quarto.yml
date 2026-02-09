@@ -63,13 +63,15 @@ pyodide:
 format:
   html:
     theme:
-      light: flatly
-      dark: darkly
+      light: [flatly, custom.scss]
+      dark: [darkly, custom.scss]
     code-fold: false
     code-tools: true
     toc: true
     number-sections: true
     highlight-style: github
+    include-after-body:
+      - code-collapse.html
 
   pdf:
     documentclass: scrbook

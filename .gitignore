@@ -27,3 +27,6 @@ __pycache__/
 
 # Editor
 .vscode/
+
+/.quarto/
+**/*.quarto_ipynb
