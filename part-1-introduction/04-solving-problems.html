@@ -79,9 +79,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-597958c53c93a607afca12fd375c57ed.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-a2148fff9e2152fe7ff7d28a54ba54f3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-2a9b3733cf03de06d265c0ff377e68b2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-a2148fff9e2152fe7ff7d28a54ba54f3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-965cb0fb1486e0ff5b7ca99efc08242d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-4021a2c378bb6c22877f77a983a3109b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-965cb0fb1486e0ff5b7ca99efc08242d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -1341,12 +1341,12 @@ Figure&nbsp;4.1: The classification process for heat transfer problems. Answerin
 <span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a>                arrowprops<span class="op">=</span><span class="bu">dict</span>(arrowstyle<span class="op">=</span><span class="st">'-&gt;'</span>, color<span class="op">=</span>PALETTE[<span class="st">'cool'</span>],</span>
 <span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a>                               lw<span class="op">=</span><span class="fl">1.2</span>, alpha<span class="op">=</span><span class="fl">0.5</span>))</span>
 <span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a><span class="co"># Gas temperature label</span></span>
-<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="op">-</span><span class="fl">3.7</span>, <span class="fl">3.2</span>, <span class="vs">r'</span><span class="dv">$</span><span class="vs">T_</span><span class="er">\</span><span class="vs">infty</span><span class="dv">$</span><span class="vs">'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>,</span>
+<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a><span class="co"># Gas temperature label (positioned well inside the vessel, away from wall)</span></span>
+<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="op">-</span><span class="fl">2.8</span>, <span class="fl">3.5</span>, <span class="vs">r'</span><span class="dv">$</span><span class="vs">T_</span><span class="er">\</span><span class="vs">infty</span><span class="dv">$</span><span class="vs">'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>,</span>
 <span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">'white'</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>,</span>
 <span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a>        bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">'round,pad=0.3'</span>, facecolor<span class="op">=</span>PALETTE[<span class="st">'cool'</span>],</span>
 <span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a>                 edgecolor<span class="op">=</span><span class="st">'none'</span>), zorder<span class="op">=</span><span class="dv">10</span>)</span>
-<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="op">-</span><span class="fl">3.7</span>, <span class="fl">2.5</span>, <span class="vs">r'</span><span class="ch">\t</span><span class="vs">extit{gas flow}'</span>, fontsize<span class="op">=</span><span class="dv">11</span>, ha<span class="op">=</span><span class="st">'center'</span>,</span>
+<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="op">-</span><span class="fl">2.8</span>, <span class="fl">2.9</span>, <span class="vs">r'</span><span class="ch">\t</span><span class="vs">extit{gas flow}'</span>, fontsize<span class="op">=</span><span class="dv">11</span>, ha<span class="op">=</span><span class="st">'center'</span>,</span>
 <span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span>PALETTE[<span class="st">'cool'</span>])</span>
 <span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a><span class="co"># ========== Sphere ==========</span></span>
@@ -1648,7 +1648,7 @@ A_s = \pi D^2, \qquad V = \frac{\pi D^3}{6}
 </section>
 <section id="what-happens-next" class="level2" data-number="4.5">
 <h2 data-number="4.5" class="anchored" data-anchor-id="what-happens-next"><span class="header-section-number">4.5</span> What Happens Next?</h2>
-<p>We cannot yet <em>predict</em> <span class="math inline">\(h\)</span> from first principles: we assumed a value above to preview the solution. The rest of this book fills in that missing piece. Part II develops the convection theory needed to find <span class="math inline">\(h\)</span> for various geometries, including flow over spheres. Part III tackles conduction problems where the temperature varies inside the solid (i.e., when the lumped capacitance assumption fails). Part IV covers radiation exchange in detail. we lack a value for <span class="math inline">\(h\)</span> and the equation is nonlinear. The rest of this book fills in those missing pieces. Part II develops the convection theory needed to find <span class="math inline">\(h\)</span> for various geometries, including flow over spheres. Part III tackles conduction problems where the temperature varies inside the solid (i.e., when the lumped capacitance assumption fails). Part IV covers radiation exchange in detail.</p>
+<p>We cannot yet <em>predict</em> <span class="math inline">\(h\)</span> from first principles: we assumed a value above to preview the solution. The rest of this book fills in that missing piece. Part II develops the convection theory needed to find <span class="math inline">\(h\)</span> for various geometries, including flow over spheres. Part III tackles conduction problems where the temperature varies inside the solid (i.e., when the lumped capacitance assumption fails). Part IV covers radiation exchange in detail.</p>
 <p>The framework from this chapter applies to every one of those problems. The physics get richer, but the approach stays the same: read, classify, sketch, assume, balance, substitute, check, solve.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1754,6 +1754,44 @@ t_{cool} = \frac{\rho C D}{h} \ln\left(\frac{T_i - T_\infty}{T_f - T_\infty}\rig
 </section>
 
 </main> <!-- /main -->
+<script>
+// Collapse long code blocks to ~10 visible lines with expand/collapse toggle.
+document.addEventListener("DOMContentLoaded", function () {
+  var COLLAPSE_HEIGHT = 256; // px threshold (~10 lines at 0.82em)
+
+  document.querySelectorAll("div.sourceCode").forEach(function (block) {
+    // Skip short blocks that don't need collapsing
+    if (block.scrollHeight <= COLLAPSE_HEIGHT) return;
+
+    // Start collapsed
+    block.classList.add("code-collapsed");
+
+    // Create expand/collapse button
+    var btn = document.createElement("button");
+    btn.className = "code-expand-btn";
+    btn.textContent = "Show full code";
+    btn.setAttribute("aria-expanded", "false");
+
+    btn.addEventListener("click", function () {
+      var isCollapsed = block.classList.contains("code-collapsed");
+      if (isCollapsed) {
+        block.classList.remove("code-collapsed");
+        block.classList.add("code-expanded");
+        btn.textContent = "Show less";
+        btn.setAttribute("aria-expanded", "true");
+      } else {
+        block.classList.remove("code-expanded");
+        block.classList.add("code-collapsed");
+        btn.textContent = "Show full code";
+        btn.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    // Insert button right after the code block
+    block.parentNode.insertBefore(btn, block.nextSibling);
+  });
+});
+</script>
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
@@ -2620,12 +2658,12 @@ t_{cool} = \frac{\rho C D}{h} \ln\left(\frac{T_i - T_\infty}{T_f - T_\infty}\rig
 <span id="cb4-392"><a href="#cb4-392" aria-hidden="true" tabindex="-1"></a>                arrowprops<span class="op">=</span><span class="bu">dict</span>(arrowstyle<span class="op">=</span><span class="st">'-&gt;'</span>, color<span class="op">=</span>PALETTE[<span class="st">'cool'</span>],</span>
 <span id="cb4-393"><a href="#cb4-393" aria-hidden="true" tabindex="-1"></a>                               lw<span class="op">=</span><span class="fl">1.2</span>, alpha<span class="op">=</span><span class="fl">0.5</span>))</span>
 <span id="cb4-394"><a href="#cb4-394" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-395"><a href="#cb4-395" aria-hidden="true" tabindex="-1"></a><span class="co"># Gas temperature label</span></span>
-<span id="cb4-396"><a href="#cb4-396" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="op">-</span><span class="fl">3.7</span>, <span class="fl">3.2</span>, <span class="vs">r'</span><span class="dv">$</span><span class="vs">T_</span><span class="er">\</span><span class="vs">infty</span><span class="dv">$</span><span class="vs">'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>,</span>
+<span id="cb4-395"><a href="#cb4-395" aria-hidden="true" tabindex="-1"></a><span class="co"># Gas temperature label (positioned well inside the vessel, away from wall)</span></span>
+<span id="cb4-396"><a href="#cb4-396" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="op">-</span><span class="fl">2.8</span>, <span class="fl">3.5</span>, <span class="vs">r'</span><span class="dv">$</span><span class="vs">T_</span><span class="er">\</span><span class="vs">infty</span><span class="dv">$</span><span class="vs">'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>,</span>
 <span id="cb4-397"><a href="#cb4-397" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span><span class="st">'white'</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>,</span>
 <span id="cb4-398"><a href="#cb4-398" aria-hidden="true" tabindex="-1"></a>        bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">'round,pad=0.3'</span>, facecolor<span class="op">=</span>PALETTE[<span class="st">'cool'</span>],</span>
 <span id="cb4-399"><a href="#cb4-399" aria-hidden="true" tabindex="-1"></a>                 edgecolor<span class="op">=</span><span class="st">'none'</span>), zorder<span class="op">=</span><span class="dv">10</span>)</span>
-<span id="cb4-400"><a href="#cb4-400" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="op">-</span><span class="fl">3.7</span>, <span class="fl">2.5</span>, <span class="vs">r'</span><span class="ch">\t</span><span class="vs">extit{gas flow}'</span>, fontsize<span class="op">=</span><span class="dv">11</span>, ha<span class="op">=</span><span class="st">'center'</span>,</span>
+<span id="cb4-400"><a href="#cb4-400" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="op">-</span><span class="fl">2.8</span>, <span class="fl">2.9</span>, <span class="vs">r'</span><span class="ch">\t</span><span class="vs">extit{gas flow}'</span>, fontsize<span class="op">=</span><span class="dv">11</span>, ha<span class="op">=</span><span class="st">'center'</span>,</span>
 <span id="cb4-401"><a href="#cb4-401" aria-hidden="true" tabindex="-1"></a>        color<span class="op">=</span>PALETTE[<span class="st">'cool'</span>])</span>
 <span id="cb4-402"><a href="#cb4-402" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-403"><a href="#cb4-403" aria-hidden="true" tabindex="-1"></a><span class="co"># ========== Sphere ==========</span></span>
@@ -2931,7 +2969,7 @@ t_{cool} = \frac{\rho C D}{h} \ln\left(\frac{T_i - T_\infty}{T_f - T_\infty}\rig
 <span id="cb4-703"><a href="#cb4-703" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-704"><a href="#cb4-704" aria-hidden="true" tabindex="-1"></a><span class="fu">## What Happens Next?</span></span>
 <span id="cb4-705"><a href="#cb4-705" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-706"><a href="#cb4-706" aria-hidden="true" tabindex="-1"></a>We cannot yet *predict* $h$ from first principles: we assumed a value above to preview the solution. The rest of this book fills in that missing piece. Part II develops the convection theory needed to find $h$ for various geometries, including flow over spheres. Part III tackles conduction problems where the temperature varies inside the solid (i.e., when the lumped capacitance assumption fails). Part IV covers radiation exchange in detail. we lack a value for $h$ and the equation is nonlinear. The rest of this book fills in those missing pieces. Part II develops the convection theory needed to find $h$ for various geometries, including flow over spheres. Part III tackles conduction problems where the temperature varies inside the solid (i.e., when the lumped capacitance assumption fails). Part IV covers radiation exchange in detail.</span>
+<span id="cb4-706"><a href="#cb4-706" aria-hidden="true" tabindex="-1"></a>We cannot yet *predict* $h$ from first principles: we assumed a value above to preview the solution. The rest of this book fills in that missing piece. Part II develops the convection theory needed to find $h$ for various geometries, including flow over spheres. Part III tackles conduction problems where the temperature varies inside the solid (i.e., when the lumped capacitance assumption fails). Part IV covers radiation exchange in detail.</span>
 <span id="cb4-707"><a href="#cb4-707" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-708"><a href="#cb4-708" aria-hidden="true" tabindex="-1"></a>The framework from this chapter applies to every one of those problems. The physics get richer, but the approach stays the same: read, classify, sketch, assume, balance, substitute, check, solve.</span>
 <span id="cb4-709"><a href="#cb4-709" aria-hidden="true" tabindex="-1"></a></span>

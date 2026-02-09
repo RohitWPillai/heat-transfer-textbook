@@ -79,9 +79,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-597958c53c93a607afca12fd375c57ed.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-a2148fff9e2152fe7ff7d28a54ba54f3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-2a9b3733cf03de06d265c0ff377e68b2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-a2148fff9e2152fe7ff7d28a54ba54f3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-965cb0fb1486e0ff5b7ca99efc08242d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-4021a2c378bb6c22877f77a983a3109b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-965cb0fb1486e0ff5b7ca99efc08242d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -713,6 +713,44 @@ Flow is laminar</code></pre>
 </section>
 
 </main> <!-- /main -->
+<script>
+// Collapse long code blocks to ~10 visible lines with expand/collapse toggle.
+document.addEventListener("DOMContentLoaded", function () {
+  var COLLAPSE_HEIGHT = 256; // px threshold (~10 lines at 0.82em)
+
+  document.querySelectorAll("div.sourceCode").forEach(function (block) {
+    // Skip short blocks that don't need collapsing
+    if (block.scrollHeight <= COLLAPSE_HEIGHT) return;
+
+    // Start collapsed
+    block.classList.add("code-collapsed");
+
+    // Create expand/collapse button
+    var btn = document.createElement("button");
+    btn.className = "code-expand-btn";
+    btn.textContent = "Show full code";
+    btn.setAttribute("aria-expanded", "false");
+
+    btn.addEventListener("click", function () {
+      var isCollapsed = block.classList.contains("code-collapsed");
+      if (isCollapsed) {
+        block.classList.remove("code-collapsed");
+        block.classList.add("code-expanded");
+        btn.textContent = "Show less";
+        btn.setAttribute("aria-expanded", "true");
+      } else {
+        block.classList.remove("code-expanded");
+        block.classList.add("code-collapsed");
+        btn.textContent = "Show full code";
+        btn.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    // Insert button right after the code block
+    block.parentNode.insertBefore(btn, block.nextSibling);
+  });
+});
+</script>
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
