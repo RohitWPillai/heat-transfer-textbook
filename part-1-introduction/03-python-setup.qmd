@@ -1,0 +1,184 @@
+# Getting Started with Python
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Set up a Python environment for heat transfer calculations
+- Use NumPy, SciPy, and Matplotlib effectively
+- Solve a simple heat transfer ODE
+:::
+
+## Introduction
+
+Throughout this book, we'll use Python to solve problems, visualise results, and build intuition. This chapter gets you set up and introduces the key tools.
+
+## Setting Up Your Environment
+
+### Option 1: Local Installation
+
+```bash
+# Create a virtual environment
+python -m venv heat-transfer-env
+source heat-transfer-env/bin/activate  # On Windows: heat-transfer-env\Scripts\activate
+
+# Install required packages
+pip install numpy scipy matplotlib jupyter
+```
+
+### Option 2: Google Colab
+
+No installation needed—just open the notebooks in your browser.
+
+## Essential Packages
+
+### NumPy: Numerical Arrays
+
+```{python}
+import numpy as np
+
+# Temperature array (Celsius)
+T = np.array([20, 50, 80, 100])
+
+# Convert to Kelvin
+T_kelvin = T + 273.15
+print(f"Temperatures in Kelvin: {T_kelvin}")
+```
+
+### SciPy: Scientific Computing
+
+```{python}
+from scipy.integrate import solve_ivp
+from scipy.optimize import fsolve
+
+# We'll use these for ODEs and nonlinear equations
+```
+
+### Matplotlib: Visualisation
+
+```{python}
+import matplotlib.pyplot as plt
+
+# Simple plot
+x = np.linspace(0, 10, 100)
+y = np.exp(-x/3)
+
+plt.figure(figsize=(8, 4))
+plt.plot(x, y, 'b-', linewidth=2)
+plt.xlabel('Time (s)')
+plt.ylabel('Temperature difference')
+plt.title('Exponential decay')
+plt.grid(True, alpha=0.3)
+plt.show()
+```
+
+## Your First Heat Transfer Problem
+
+### Newton's Law of Cooling
+
+A hot object cools in a fluid environment:
+
+$$\frac{dT}{dt} = -\frac{hA}{mc_p}(T - T_\infty)$$
+
+Let's solve this ODE:
+
+```{python}
+import numpy as np
+from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
+
+# Parameters
+h = 10          # Heat transfer coefficient (W/m²·K)
+A = 0.01        # Surface area (m²)
+m = 0.5         # Mass (kg)
+cp = 900        # Specific heat (J/kg·K) - aluminium
+T_inf = 25      # Ambient temperature (°C)
+T0 = 100        # Initial temperature (°C)
+
+# Time constant
+tau = m * cp / (h * A)
+print(f"Time constant τ = {tau:.1f} s")
+
+# ODE function
+def cooling(t, T):
+    return -(h * A / (m * cp)) * (T - T_inf)
+
+# Solve
+t_span = (0, 5 * tau)
+t_eval = np.linspace(0, 5 * tau, 100)
+sol = solve_ivp(cooling, t_span, [T0], t_eval=t_eval)
+
+# Analytical solution for comparison
+T_analytical = T_inf + (T0 - T_inf) * np.exp(-t_eval / tau)
+
+# Plot
+plt.figure(figsize=(10, 5))
+plt.plot(sol.t, sol.y[0], 'b-', linewidth=2, label='Numerical')
+plt.plot(t_eval, T_analytical, 'r--', linewidth=2, label='Analytical')
+plt.axhline(y=T_inf, color='gray', linestyle=':', label=f'$T_\\infty$ = {T_inf}°C')
+plt.xlabel('Time (s)')
+plt.ylabel('Temperature (°C)')
+plt.title("Newton's Law of Cooling")
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
+```
+
+### What We Learned
+
+- The numerical and analytical solutions match perfectly
+- The time constant $\tau = \frac{mc_p}{hA}$ characterises the cooling rate
+- After $5\tau$, the object is essentially at ambient temperature
+
+## Code Style in This Book
+
+Throughout this book, we follow these conventions:
+
+```{python}
+def heat_flux_conduction(k: float, dT: float, dx: float) -> float:
+    """
+    Calculate conductive heat flux using Fourier's law.
+
+    Parameters
+    ----------
+    k : float
+        Thermal conductivity (W/m·K)
+    dT : float
+        Temperature difference (K or °C)
+    dx : float
+        Distance (m)
+
+    Returns
+    -------
+    float
+        Heat flux (W/m²)
+
+    Examples
+    --------
+    >>> heat_flux_conduction(k=50, dT=100, dx=0.1)
+    50000.0
+    """
+    return -k * dT / dx
+
+# Example usage
+q = heat_flux_conduction(k=50, dT=-100, dx=0.1)
+print(f"Heat flux: {q:.0f} W/m²")
+```
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+- NumPy for arrays and numerical operations
+- SciPy for ODEs, optimization, and more
+- Matplotlib for visualisation
+- Always include units in variable names or comments
+:::
+
+## Exercises
+
+1. Modify the cooling example to use different materials (change $c_p$). How does the time constant change?
+
+2. What happens if you double the surface area $A$?
+
+3. Plot the cooling curves for steel, aluminium, and copper on the same graph.

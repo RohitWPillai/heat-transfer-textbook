@@ -1,0 +1,57 @@
+# Natural Convection
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Explain buoyancy-driven flow
+- Use Rayleigh number to characterise natural convection
+- Apply correlations for vertical and horizontal surfaces
+:::
+
+## Introduction
+
+When there's no fan or pump, temperature differences themselves drive flow through buoyancy. This is **natural** (or **free**) convection.
+
+<!-- TODO: Add content from Lecture 3.5 transcripts -->
+
+## The Driving Force: Buoyancy
+
+$$F_\text{buoyancy} = \rho_\infty g \beta (T - T_\infty) \cdot V$$
+
+where $\beta$ is the volumetric thermal expansion coefficient:
+
+$$\beta = -\frac{1}{\rho}\left(\frac{\partial \rho}{\partial T}\right)_p$$
+
+For ideal gases: $\beta = 1/T$
+
+## Grashof and Rayleigh Numbers
+
+$$\text{Gr} = \frac{g \beta \Delta T L^3}{\nu^2}$$
+
+$$\text{Ra} = \text{Gr} \cdot \text{Pr} = \frac{g \beta \Delta T L^3}{\nu \alpha}$$
+
+## Vertical Surfaces
+
+<!-- TODO: Correlations -->
+
+## Horizontal Surfaces
+
+<!-- TODO: Hot side up vs hot side down -->
+
+## Enclosures
+
+<!-- TODO: Cavities, double-pane windows -->
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+- Buoyancy drives natural convection
+- Ra determines flow intensity
+- Orientation matters significantly
+:::
+
+## Exercises
+
+<!-- TODO: Add exercises -->

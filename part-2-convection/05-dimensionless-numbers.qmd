@@ -1,0 +1,99 @@
+# Dimensionless Numbers
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Calculate and interpret Reynolds, Prandtl, and Nusselt numbers
+- Explain why dimensionless correlations are powerful
+- Use correlations to estimate heat transfer coefficients
+:::
+
+## Introduction
+
+Dimensionless numbers are the language of heat transfer correlations. They allow us to collapse complex physics into simple relationships that work across scales.
+
+<!-- TODO: Add content from Lecture 3 transcripts -->
+
+## Reynolds Number
+
+$$\text{Re} = \frac{\rho V L}{\mu} = \frac{V L}{\nu}$$
+
+**Physical meaning**: Ratio of inertial forces to viscous forces.
+
+```{python}
+def reynolds_number(V: float, L: float, nu: float) -> float:
+    """
+    Calculate Reynolds number.
+
+    Parameters
+    ----------
+    V : float
+        Velocity (m/s)
+    L : float
+        Characteristic length (m)
+    nu : float
+        Kinematic viscosity (m²/s)
+
+    Returns
+    -------
+    float
+        Reynolds number (dimensionless)
+    """
+    return V * L / nu
+
+# Example: Air at 25°C flowing at 5 m/s over a 1m plate
+nu_air = 1.56e-5  # m²/s
+Re = reynolds_number(V=5, L=1, nu=nu_air)
+print(f"Re = {Re:.0f}")
+print(f"Flow is {'turbulent' if Re > 5e5 else 'laminar'}")
+```
+
+## Prandtl Number
+
+$$\text{Pr} = \frac{\nu}{\alpha} = \frac{c_p \mu}{k}$$
+
+**Physical meaning**: Ratio of momentum diffusivity to thermal diffusivity.
+
+| Fluid | Pr | Notes |
+|-------|---:|-------|
+| Liquid metals | 0.01-0.03 | Heat diffuses faster |
+| Gases | ~0.7 | Similar rates |
+| Water | ~7 | Momentum diffuses faster |
+| Oils | 100-1000 | Thick thermal BL |
+
+## Nusselt Number
+
+$$\text{Nu} = \frac{hL}{k}$$
+
+**Physical meaning**: Ratio of convective to conductive heat transfer.
+
+<!-- TODO: More explanation -->
+
+## Other Important Numbers
+
+### Grashof Number (Natural Convection)
+
+$$\text{Gr} = \frac{g \beta \Delta T L^3}{\nu^2}$$
+
+### Rayleigh Number
+
+$$\text{Ra} = \text{Gr} \cdot \text{Pr}$$
+
+## How Correlations Work
+
+<!-- TODO: Form of correlations, Nu = f(Re, Pr) -->
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+- Re determines flow regime (laminar/turbulent)
+- Pr is a fluid property relating momentum and thermal diffusion
+- Nu is what we want to find—it gives us h
+- Correlations: Nu = f(Re, Pr) or Nu = f(Ra, Pr)
+:::
+
+## Exercises
+
+<!-- TODO: Add exercises -->

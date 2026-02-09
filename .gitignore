@@ -1,0 +1,29 @@
+# Quarto build output
+_book/
+.quarto/
+
+# Freeze (regenerated on render)
+_freeze/
+
+# Bulk extracted slide images (not used in book)
+images/ch01/extracted/
+images/ch01/originals/
+images/ch01/stirling-1-*
+images/ch01/stirling-2-*
+images/ch01/stirling-3-*
+images/ch01/stirling-4-*
+images/ch02/
+
+# Transcripts (private lecture content)
+transcripts/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/

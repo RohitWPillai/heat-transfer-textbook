@@ -1,0 +1,40 @@
+# Preface {.unnumbered}
+
+Welcome to *Heat Transfer: An Interactive Introduction with Python*.
+
+This open-source textbook covers the fundamentals of heat transfer—convection, conduction, and radiation—with an emphasis on physical understanding and computational problem-solving.
+
+## What Makes This Book Different
+
+- **Interactive Python examples** throughout every chapter
+- **Computational tools** you can use for real engineering problems
+- **Visualisations** that help build intuition
+- **Open source** and freely available
+
+## Prerequisites
+
+This book assumes familiarity with:
+
+- **Calculus**: Differentiation, integration, ODEs
+- **Thermodynamics**: First law, temperature, energy
+- **Fluid mechanics**: Basic concepts of viscosity, flow regimes
+- **Python**: Basic programming (or willingness to learn)
+
+## How to Use This Book
+
+Each chapter contains:
+
+1. **Theory** with derivations and physical explanations
+2. **Worked examples** solved both analytically and with Python
+3. **Interactive explorations** to build intuition
+4. **Exercises** ranging from conceptual to computational
+
+Code cells are executable—you can modify them and see results immediately.
+
+## License
+
+This work is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Code is licensed under MIT.
+
+## Feedback
+
+Found an error? Have a suggestion? Please [open an issue](https://github.com/yourusername/heat-transfer-textbook/issues) on GitHub.

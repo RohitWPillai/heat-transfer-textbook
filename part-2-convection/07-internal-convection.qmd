@@ -1,0 +1,78 @@
+# Internal Forced Convection
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Distinguish between entrance and fully-developed regions
+- Apply correlations for pipe flow
+- Analyse constant wall temperature and constant heat flux cases
+:::
+
+## Introduction
+
+Internal flow—inside pipes, ducts, and channels—is ubiquitous: HVAC systems, heat exchangers, blood vessels.
+
+<!-- TODO: Add content from Lecture 4 transcripts -->
+
+## Flow Development
+
+### Hydrodynamic Entrance Length
+
+$$\frac{L_{h,\text{lam}}}{D} \approx 0.05 \, \text{Re}_D$$
+
+$$\frac{L_{h,\text{turb}}}{D} \approx 10$$
+
+### Thermal Entrance Length
+
+$$\frac{L_{t,\text{lam}}}{D} \approx 0.05 \, \text{Re}_D \, \text{Pr}$$
+
+## Fully Developed Flow
+
+### Laminar (Re < 2300)
+
+| Boundary Condition | Nu |
+|-------------------|---:|
+| Constant wall temperature | 3.66 |
+| Constant heat flux | 4.36 |
+
+### Turbulent (Re > 10,000)
+
+**Dittus-Boelter:**
+$$\text{Nu}_D = 0.023 \, \text{Re}_D^{0.8} \, \text{Pr}^n$$
+
+where $n = 0.4$ for heating, $n = 0.3$ for cooling.
+
+```{python}
+def nusselt_pipe_turbulent(Re: float, Pr: float, heating: bool = True) -> float:
+    """Dittus-Boelter correlation for turbulent pipe flow."""
+    n = 0.4 if heating else 0.3
+    return 0.023 * Re**0.8 * Pr**n
+
+# Example: Water in a pipe
+Re = 50000
+Pr = 7  # Water at ~20°C
+Nu = nusselt_pipe_turbulent(Re, Pr, heating=True)
+print(f"Nu = {Nu:.1f}")
+```
+
+## Constant Wall Temperature
+
+<!-- TODO: Log-mean temperature difference -->
+
+## Constant Heat Flux
+
+<!-- TODO: Linear temperature rise -->
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+- Entrance regions have higher heat transfer
+- Fully developed: Nu is constant (laminar) or Re-dependent (turbulent)
+- Boundary condition matters for laminar flow
+:::
+
+## Exercises
+
+<!-- TODO: Add exercises -->

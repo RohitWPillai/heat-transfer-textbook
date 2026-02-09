@@ -1,0 +1,101 @@
+# Fundamentals of Thermal Radiation
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Explain thermal radiation as electromagnetic energy
+- Apply Planck's law, Wien's law, and Stefan-Boltzmann law
+- Distinguish between blackbody and real surface behaviour
+:::
+
+## Introduction
+
+Radiation is fundamentally different from conduction and convection: it requires no medium and travels at the speed of light. All matter above absolute zero emits thermal radiation.
+
+<!-- TODO: Add content from Lecture 9 transcripts -->
+
+## Electromagnetic Spectrum
+
+Thermal radiation occupies roughly 0.1–100 μm wavelength range.
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Planck's law
+def planck(wavelength, T):
+    """Spectral blackbody emissive power (W/m²·μm)."""
+    h = 6.626e-34   # Planck constant
+    c = 3e8         # Speed of light
+    k = 1.381e-23   # Boltzmann constant
+
+    lam = wavelength * 1e-6  # Convert μm to m
+    return (2 * np.pi * h * c**2 / lam**5) / (np.exp(h * c / (lam * k * T)) - 1) * 1e-6
+
+wavelengths = np.linspace(0.1, 20, 500)
+temperatures = [300, 500, 1000, 2000, 5778]  # Sun ~5778K
+
+plt.figure(figsize=(10, 6))
+for T in temperatures:
+    E = planck(wavelengths, T)
+    plt.plot(wavelengths, E, label=f'T = {T} K')
+
+plt.xlabel('Wavelength (μm)')
+plt.ylabel('Spectral emissive power (W/m²·μm)')
+plt.title("Planck's Law: Blackbody Emission")
+plt.legend()
+plt.xlim(0, 20)
+plt.grid(True, alpha=0.3)
+plt.show()
+```
+
+## Planck's Law
+
+$$E_{b,\lambda}(\lambda, T) = \frac{C_1}{\lambda^5 \left[\exp(C_2/\lambda T) - 1\right]}$$
+
+where $C_1 = 3.742 \times 10^8$ W·μm⁴/m² and $C_2 = 1.439 \times 10^4$ μm·K.
+
+## Wien's Displacement Law
+
+$$\lambda_\text{max} T = 2898 \, \mu\text{m} \cdot \text{K}$$
+
+```{python}
+def wien_peak(T):
+    """Peak wavelength from Wien's law (μm)."""
+    return 2898 / T
+
+print(f"Sun (5778 K): λ_max = {wien_peak(5778):.2f} μm (visible)")
+print(f"Human (310 K): λ_max = {wien_peak(310):.1f} μm (infrared)")
+print(f"Room (300 K): λ_max = {wien_peak(300):.1f} μm (infrared)")
+```
+
+## Stefan-Boltzmann Law
+
+Total emissive power of a blackbody:
+
+$$E_b = \sigma T^4$$
+
+where $\sigma = 5.67 \times 10^{-8}$ W/m²·K⁴.
+
+## Real Surfaces
+
+Real surfaces emit less than a blackbody:
+
+$$E = \varepsilon \sigma T^4$$
+
+where $\varepsilon$ is the **emissivity** (0 < ε ≤ 1).
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+- Blackbodies are idealised perfect emitters
+- Planck's law describes spectral distribution
+- Wien's law gives peak wavelength
+- Stefan-Boltzmann gives total power: $E_b = \sigma T^4$
+:::
+
+## Exercises
+
+<!-- TODO: Add exercises -->
