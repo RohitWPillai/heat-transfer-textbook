@@ -1,38 +1,95 @@
 <script>
 // Collapse long code blocks to ~10 visible lines with expand/collapse toggle.
-document.addEventListener("DOMContentLoaded", function () {
-  var COLLAPSE_HEIGHT = 256; // px threshold (~10 lines at 0.82em)
+// Handles two Quarto code block types:
+//   1. bare code blocks:  <div class="sourceCode">...</div>
+//   2. pyodide editors:   <div class="qpyodide-editor">...</div> (created async by Monaco)
+// Note: code-fold blocks (figure code) are hidden entirely via CSS.
 
-  document.querySelectorAll("div.sourceCode").forEach(function (block) {
-    // Skip short blocks that don't need collapsing
-    if (block.scrollHeight <= COLLAPSE_HEIGHT) return;
+(function () {
+  var COLLAPSE_HEIGHT = 256; // px (~10 lines at 0.82em)
 
-    // Start collapsed
-    block.classList.add("code-collapsed");
+  function addCollapseBtn(codeEl, insertAfterEl, showLabel, hideLabel) {
+    codeEl.classList.add("code-collapsed");
 
-    // Create expand/collapse button
     var btn = document.createElement("button");
     btn.className = "code-expand-btn";
-    btn.textContent = "Show full code";
+    btn.textContent = showLabel;
     btn.setAttribute("aria-expanded", "false");
 
     btn.addEventListener("click", function () {
-      var isCollapsed = block.classList.contains("code-collapsed");
-      if (isCollapsed) {
-        block.classList.remove("code-collapsed");
-        block.classList.add("code-expanded");
-        btn.textContent = "Show less";
+      if (codeEl.classList.contains("code-collapsed")) {
+        codeEl.classList.remove("code-collapsed");
+        codeEl.classList.add("code-expanded");
+        btn.textContent = hideLabel;
         btn.setAttribute("aria-expanded", "true");
       } else {
-        block.classList.remove("code-expanded");
-        block.classList.add("code-collapsed");
-        btn.textContent = "Show full code";
+        codeEl.classList.remove("code-expanded");
+        codeEl.classList.add("code-collapsed");
+        btn.textContent = showLabel;
         btn.setAttribute("aria-expanded", "false");
       }
     });
 
-    // Insert button right after the code block
-    block.parentNode.insertBefore(btn, block.nextSibling);
+    insertAfterEl.parentNode.insertBefore(btn, insertAfterEl.nextSibling);
+  }
+
+  function handleStaticBlocks() {
+    // --- Bare code blocks (not in <details>) ---
+    document.querySelectorAll("div.sourceCode").forEach(function (block) {
+      if (block.closest("details")) return;
+      if (block.classList.contains("code-collapsed")) return;
+      if (block.scrollHeight <= COLLAPSE_HEIGHT) return;
+
+      addCollapseBtn(block, block, "Show full code", "Show less");
+    });
+  }
+
+  // --- Type 3: pyodide Monaco editors (created asynchronously) ---
+  function handlePyodideEditor(editorDiv) {
+    // Already processed?
+    if (editorDiv.dataset.collapseHandled) return;
+    editorDiv.dataset.collapseHandled = "true";
+
+    // Wait a tick for Monaco to render and set the editor height
+    setTimeout(function () {
+      if (editorDiv.scrollHeight <= COLLAPSE_HEIGHT) return;
+
+      var interactiveArea = editorDiv.closest(".qpyodide-interactive-area");
+      var insertTarget = interactiveArea || editorDiv;
+
+      addCollapseBtn(editorDiv, insertTarget, "Show code", "Hide code");
+    }, 500);
+  }
+
+  function watchForPyodideEditors() {
+    // Handle any that already exist
+    document.querySelectorAll(".qpyodide-editor").forEach(handlePyodideEditor);
+
+    // Watch for new ones (Monaco creates them after page load)
+    var observer = new MutationObserver(function (mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        var nodes = mutations[i].addedNodes;
+        for (var j = 0; j < nodes.length; j++) {
+          if (nodes[j].nodeType !== 1) continue;
+          // Check if the added node is or contains a pyodide editor
+          if (nodes[j].classList && nodes[j].classList.contains("qpyodide-editor")) {
+            handlePyodideEditor(nodes[j]);
+          }
+          var editors = nodes[j].querySelectorAll
+            ? nodes[j].querySelectorAll(".qpyodide-editor")
+            : [];
+          for (var k = 0; k < editors.length; k++) {
+            handlePyodideEditor(editors[k]);
+          }
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    handleStaticBlocks();
+    watchForPyodideEditors();
   });
-});
+})();
 </script>

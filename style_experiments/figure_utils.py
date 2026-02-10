@@ -132,9 +132,6 @@ def check_overlaps(fig, verbose=True):
                     if verbose:
                         print(f"⚠️  OVERLAP in axes[{ax_idx}]: {label1} ↔ {label2}")
 
-    if verbose and not all_overlaps:
-        print("✓ No overlaps detected")
-
     return all_overlaps
 
 

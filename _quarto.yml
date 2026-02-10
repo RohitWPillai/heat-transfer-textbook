@@ -65,6 +65,8 @@ format:
     theme:
       light: [flatly, custom.scss]
       dark: [darkly, custom.scss]
+    grid:
+      margin-width: 350px
     code-fold: false
     code-tools: true
     toc: true
@@ -73,12 +75,12 @@ format:
     include-after-body:
       - code-collapse.html
 
-  pdf:
-    documentclass: scrbook
-    papersize: a4
-    toc: true
-    number-sections: true
-    colorlinks: true
+# pdf:
+#   documentclass: scrbook
+#   papersize: a4
+#   toc: true
+#   number-sections: true
+#   colorlinks: true
 
 execute:
   freeze: auto

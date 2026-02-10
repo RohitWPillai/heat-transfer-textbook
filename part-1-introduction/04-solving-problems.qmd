@@ -65,175 +65,22 @@ Here is a step-by-step framework that works for essentially every heat transfer 
 
 8. **Solve.** Analytically if possible, numerically if necessary.
 
-@fig-ht-classification shows how these classification questions form a decision tree. You don't need to memorise this; the point is that every problem follows the same logical path from statement to governing equation.
+@tbl-ht-classification summarises these classification questions. You don't need to memorise this; the point is that every problem follows the same logical path from statement to governing equation.
 
-```{python}
-#| label: fig-ht-classification
-#| fig-cap: "The classification process for heat transfer problems. Answering these questions systematically narrows the problem to a specific category with known governing equations."
-#| code-fold: true
+::: {#tbl-ht-classification}
 
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
-from matplotlib.colors import LinearSegmentedColormap
-import matplotlib.patheffects as pe
-import warnings
+| Question | Options | What it determines |
+|:---------|:--------|:-------------------|
+| Which **mode(s)**? | Conduction, convection, radiation, or a combination | Which rate expressions to substitute into the energy balance |
+| **Steady** or **transient**? | $dE_{st}/dt = 0$ (steady) or $dE_{st}/dt \neq 0$ (transient) | Whether the governing equation is an ODE in time or a simpler algebraic/spatial equation |
+| How many **dimensions**? | 1-D, 2-D, or 3-D | Whether temperature varies in one, two, or three spatial directions |
+| **Boundary conditions**? | Known $T$, known $q''$, convection ($h$), insulation, symmetry | The constraints needed to solve the governing equation |
+| **Constant properties**? | Yes (linear problem) or no (nonlinear, needs iteration) | Whether analytical solutions exist or numerical methods are required |
+| **Internal generation**? | $\dot{E}_{gen} = 0$ or $\dot{E}_{gen} \neq 0$ | Whether there is a source term in the energy balance |
 
-plt.rcParams.update({
-    'text.usetex': True,
-    'font.family': 'serif',
-    'font.serif': ['Computer Modern Roman'],
-    'text.latex.preamble': r'\usepackage{amsmath}',
-})
+: The classification questions for heat transfer problems. Each answer narrows the problem toward a specific governing equation. {.striped .hover}
 
-# ---- Signature palette ----
-PALETTE = {
-    'hot': '#E63946', 'warm': '#F4A261', 'neutral': '#E9C46A',
-    'cool': '#2A9D8F', 'cold': '#264653', 'text': '#1D3557',
-    'light_bg': '#F8F9FA', 'glow_hot': '#FFE5E5', 'glow_cold': '#E5F0F8',
-}
-
-def _hex_rgb(h):
-    h = h.lstrip('#')
-    return tuple(int(h[i:i+2], 16)/255 for i in (0, 2, 4))
-
-THERMAL_CMAP = LinearSegmentedColormap.from_list('thermal', [
-    (0.0, _hex_rgb(PALETTE['cold'])), (0.25, _hex_rgb(PALETTE['cool'])),
-    (0.5, _hex_rgb(PALETTE['neutral'])), (0.75, _hex_rgb(PALETTE['warm'])),
-    (1.0, _hex_rgb(PALETTE['hot'])),
-])
-
-def _check_overlaps(fig):
-    """Automatic overlap detection for all text elements."""
-    fig.canvas.draw()
-    renderer = fig.canvas.get_renderer()
-    issues = []
-    for ax in fig.axes:
-        texts = [(t, t.get_text()) for t in ax.texts
-                 if t.get_text().strip() and t.get_visible()]
-        for lbl in [ax.xaxis.label, ax.yaxis.label, ax.title]:
-            if lbl.get_text().strip() and lbl.get_visible():
-                texts.append((lbl, lbl.get_text()))
-        bboxes = []
-        for t, name in texts:
-            try:
-                bp = t.get_bbox_patch()
-                if bp is not None:
-                    bboxes.append((bp.get_window_extent(renderer), name[:30]))
-                else:
-                    bboxes.append((t.get_window_extent(renderer), name[:30]))
-            except Exception:
-                pass
-        for i in range(len(bboxes)):
-            for j in range(i + 1, len(bboxes)):
-                if bboxes[i][0].overlaps(bboxes[j][0]):
-                    issues.append(f"'{bboxes[i][1]}' ↔ '{bboxes[j][1]}'")
-    if issues:
-        warnings.warn("OVERLAPPING LABELS:\n  " + "\n  ".join(issues))
-    return issues
-
-# ---- Figure layout ----
-fig = plt.figure(figsize=(12, 8))
-fig.patch.set_facecolor('white')
-ax = fig.add_axes([0.02, 0.02, 0.96, 0.96])
-ax.set_xlim(0, 12)
-ax.set_ylim(0, 10)
-ax.set_facecolor('white')
-ax.axis('off')
-
-# ---- Helper: draw a styled box ----
-def draw_box(ax, x, y, w, h, text, color, textcolor='white', fontsize=11, bold=True):
-    box = FancyBboxPatch(
-        (x - w/2, y - h/2), w, h,
-        boxstyle='round,pad=0.15,rounding_size=0.15',
-        facecolor=color, edgecolor='none', alpha=0.92, zorder=5)
-    ax.add_patch(box)
-    weight = 'bold' if bold else 'normal'
-    ax.text(x, y, text, fontsize=fontsize, ha='center', va='center',
-            color=textcolor, fontweight=weight, zorder=6)
-
-def draw_arrow_down(ax, x1, y1, x2, y2):
-    arrow = FancyArrowPatch(
-        (x1, y1), (x2, y2),
-        arrowstyle='-|>', mutation_scale=14, linewidth=1.8,
-        color=PALETTE['text'], zorder=4)
-    ax.add_patch(arrow)
-
-def draw_arrow_branch(ax, x1, y1, x2, y2):
-    """Arrow for branching paths."""
-    arrow = FancyArrowPatch(
-        (x1, y1), (x2, y2),
-        arrowstyle='-|>', mutation_scale=12, linewidth=1.5,
-        color=PALETTE['text'], alpha=0.7, zorder=4,
-        connectionstyle='arc3,rad=0.0')
-    ax.add_patch(arrow)
-
-# ---- Row 1: Starting question ----
-draw_box(ax, 6, 9.2, 5.5, 0.9, r'\textbf{Read the problem statement}', PALETTE['text'])
-
-draw_arrow_down(ax, 6, 8.75, 6, 8.25)
-
-# ---- Row 2: Mode classification ----
-draw_box(ax, 6, 7.8, 5.0, 0.7, r'Which mode(s) of heat transfer?', PALETTE['cold'], fontsize=11)
-
-# Branch into three modes
-draw_arrow_branch(ax, 4.2, 7.45, 2.5, 6.85)
-draw_arrow_branch(ax, 6.0, 7.45, 6.0, 6.85)
-draw_arrow_branch(ax, 7.8, 7.45, 9.5, 6.85)
-
-draw_box(ax, 2.5, 6.5, 2.2, 0.55, r'Conduction', PALETTE['cool'], fontsize=11)
-draw_box(ax, 6.0, 6.5, 2.2, 0.55, r'Convection', PALETTE['warm'], fontsize=11)
-draw_box(ax, 9.5, 6.5, 2.2, 0.55, r'Radiation', PALETTE['hot'], fontsize=11)
-
-# Converge arrows
-draw_arrow_branch(ax, 2.5, 6.22, 4.8, 5.65)
-draw_arrow_branch(ax, 6.0, 6.22, 6.0, 5.65)
-draw_arrow_branch(ax, 9.5, 6.22, 7.2, 5.65)
-
-# ---- Row 3: Steady vs transient ----
-draw_box(ax, 6, 5.3, 4.5, 0.55, r'Steady state or transient?', PALETTE['cold'], fontsize=11)
-
-draw_arrow_branch(ax, 4.5, 5.02, 3.5, 4.45)
-draw_arrow_branch(ax, 7.5, 5.02, 8.5, 4.45)
-
-draw_box(ax, 3.5, 4.1, 3.0, 0.55, r'Steady: $dE_{st}/dt = 0$', PALETTE['cool'],
-         textcolor='white', fontsize=11)
-draw_box(ax, 8.5, 4.1, 3.0, 0.55, r'Transient: $dE_{st}/dt \neq 0$', PALETTE['warm'],
-         textcolor='white', fontsize=11)
-
-# Converge
-draw_arrow_branch(ax, 3.5, 3.82, 5.0, 3.25)
-draw_arrow_branch(ax, 8.5, 3.82, 7.0, 3.25)
-
-# ---- Row 4: Dimensionality ----
-draw_box(ax, 6, 2.9, 4.0, 0.55, r'How many dimensions?', PALETTE['cold'], fontsize=11)
-
-draw_arrow_branch(ax, 4.5, 2.62, 3.0, 2.05)
-draw_arrow_branch(ax, 6.0, 2.62, 6.0, 2.05)
-draw_arrow_branch(ax, 7.5, 2.62, 9.0, 2.05)
-
-draw_box(ax, 3.0, 1.7, 1.5, 0.55, r'1-D', PALETTE['cool'], fontsize=11)
-draw_box(ax, 6.0, 1.7, 1.5, 0.55, r'2-D', PALETTE['neutral'],
-         textcolor=PALETTE['text'], fontsize=11)
-draw_box(ax, 9.0, 1.7, 1.5, 0.55, r'3-D', PALETTE['warm'], fontsize=11)
-
-# Converge
-draw_arrow_branch(ax, 3.0, 1.42, 5.0, 0.85)
-draw_arrow_branch(ax, 6.0, 1.42, 6.0, 0.85)
-draw_arrow_branch(ax, 9.0, 1.42, 7.0, 0.85)
-
-# ---- Row 5: Result ----
-draw_box(ax, 6, 0.5, 6.5, 0.7,
-         r'BCs, properties, generation $\rightarrow$ governing equation',
-         PALETTE['text'], fontsize=11)
-
-# ---- Overlap check ----
-overlaps = _check_overlaps(fig)
-if overlaps:
-    warnings.warn(f"{len(overlaps)} overlapping label(s)")
-
-plt.show()
-```
+:::
 
 ::: {.callout-tip}
 ## The Messy Draft
@@ -256,16 +103,53 @@ Derive the equation governing the time evolution of the sphere temperature, $T_{
 
 ### Step 1: Parse the Problem Statement
 
-Reading a problem statement is like a chess game. Every word is a clue, and the examiner (or the physical situation) has placed them there deliberately. Slow down and extract the physics from the language:
+Reading a problem statement is like a chess game. Every word is a clue, and the examiner (or the physical situation) has placed them there deliberately. Slow down and extract the physics from the language.
 
-- **"aluminum sphere"**: a specific geometry and material. We'll need properties of aluminum ($\rho$, $c$).
-- **"diameter $D$"**: the sphere has a known size. We'll need the surface area and volume, both of which depend on $D$.
-- **"initially at a uniform temperature $T_i$"**: the word "initially" means this is a **transient** problem. The temperature is changing with time. Also, "uniform" tells us the sphere temperature is spatially constant (no internal gradients).
-- **"large vessel"**: the vessel is much larger than the sphere. This will simplify the radiation calculation later.
-- **"walls maintained at $T_{wall}$"**: a cold sink for radiation. If the walls are at a known temperature and the sphere has a given emissivity, radiation will occur.
-- **"gas flow at $T_\infty$ with coefficient $h$"**: convection is active. The gas carries heat away from (or to) the sphere.
-- **"emissivity $\varepsilon$"**: the problem gives us this, so radiation is expected in the analysis. Emissivity never appears in a problem by accident.
-- **"Derive the equation"**: they want the ODE, not a numerical answer. We need to set up the governing equation and simplify, but not solve.
+::: {.column-margin}
+![Like chess, parsing a problem means reading the position on the board and figuring out what your opponent intended. Every piece the examiner places in the problem statement is there for a reason.](../images/ch04/chess.jpg)
+:::
+
+Click through the tabs below to see how each phrase in the problem statement reveals a piece of the physics:
+
+::: {.panel-tabset .nav-pills}
+
+## "aluminum sphere"
+
+> An **aluminum sphere** of diameter $D$...
+
+A specific geometry and material. We'll need properties of aluminum ($\rho$, $c$). The word "sphere" also tells us the surface area and volume formulas we'll need later.
+
+## "initially... uniform"
+
+> ...**initially** at a **uniform temperature** $T_i$...
+
+The word "initially" means this is a **transient** problem: temperature changes with time. "Uniform" tells us the sphere temperature is spatially constant (no internal gradients), which will become an important assumption.
+
+## "large vessel"
+
+> ...placed inside a **large vessel** whose walls are maintained at temperature $T_{wall}$...
+
+The vessel is much larger than the sphere. This simplifies the radiation calculation: the sphere "sees" only the vessel walls, and the view factor is approximately 1. The cold walls are a sink for radiation.
+
+## "gas flow... $h$"
+
+> A gas at temperature $T_\infty$ flows through the vessel past the sphere, with a known convective heat transfer coefficient **$h$**...
+
+Convection is active. The gas carries heat away from the sphere. The fact that $h$ is given (rather than derived) means we can proceed without convection theory for now.
+
+## "emissivity $\varepsilon$"
+
+> The **emissivity** of the sphere surface is $\varepsilon$.
+
+Emissivity never appears in a problem by accident. If the examiner gives you $\varepsilon$, they expect radiation in your analysis.
+
+## "Derive the equation"
+
+> **Derive the equation** governing the time evolution of the sphere temperature, $T_{sph}(t)$.
+
+They want the ODE, not a numerical answer. We need to set up the governing equation and simplify, but not solve.
+
+:::
 
 From this parsing, we know: transient, convection + radiation (two modes), spatially uniform sphere temperature, and we need the time derivative $dT_{sph}/dt$.
 

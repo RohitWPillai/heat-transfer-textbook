@@ -1,22 +1,23 @@
-/*-- scss:defaults --*/
-
-// Reduce code font size to slightly smaller than body text
-$code-block-font-size: 0.82em;
-
 /*-- scss:rules --*/
 
-// Code block font size (applies to all source code blocks)
-div.sourceCode {
-  font-size: $code-block-font-size;
+// Active pill tab: white text on coloured background
+.nav-pills .nav-link.active {
+  color: #fff !important;
 }
 
-// Collapsed code block: show first ~10 lines then fade out
+// Hide figure-generating code entirely (code-fold blocks)
+details.code-fold {
+  display: none;
+}
+
+// ---- Collapse/expand for long code blocks ----
+
+// Collapsed state: show first ~10 lines with gradient fade
 div.sourceCode.code-collapsed {
-  max-height: 16em;  // ~10 lines at 0.82em
+  max-height: 16em;
   overflow: hidden;
   position: relative;
 
-  // Gradient fade at bottom to signal "there's more"
   &::after {
     content: "";
     position: absolute;
@@ -29,7 +30,17 @@ div.sourceCode.code-collapsed {
   }
 }
 
-// Expand button
+// Expanded state: remove constraints
+div.sourceCode.code-expanded {
+  max-height: none;
+  overflow: visible;
+
+  &::after {
+    display: none;
+  }
+}
+
+// Expand/collapse toggle button
 .code-expand-btn {
   display: block;
   width: 100%;
@@ -49,8 +60,29 @@ div.sourceCode.code-collapsed {
   }
 }
 
-// When expanded, remove the fade and max-height
-div.sourceCode.code-expanded {
+// ---- Pyodide interactive editor collapse ----
+
+// Collapsed pyodide editor: limit height with fade
+.qpyodide-editor.code-collapsed {
+  max-height: 16em;
+  overflow: hidden;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3em;
+    background: linear-gradient(transparent, var(--bs-body-bg, #fff));
+    pointer-events: none;
+    z-index: 10;
+  }
+}
+
+// Expanded pyodide editor
+.qpyodide-editor.code-expanded {
   max-height: none;
   overflow: visible;
 

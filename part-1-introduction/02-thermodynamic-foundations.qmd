@@ -391,8 +391,6 @@ for frac, temp in [(0, T2), (0.5, (T1 + T2) / 2), (1, T1)]:
 overlaps = _check_overlaps(fig)
 if overlaps:
     print(f"WARNING: {len(overlaps)} overlapping label(s) — fix before publishing")
-else:
-    print("No label overlaps detected")
 
 plt.show()
 ```
@@ -812,8 +810,6 @@ ax2.axis('off')
 overlaps = _check_overlaps(fig)
 if overlaps:
     print(f"WARNING: {len(overlaps)} overlapping label(s)")
-else:
-    print("No label overlaps detected")
 
 plt.show()
 ```

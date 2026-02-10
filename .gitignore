@@ -22,6 +22,12 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
+# LaTeX build artifacts
+*.aux
+*.log
+*.tex
+*.toc
+
 # OS
 .DS_Store
 
