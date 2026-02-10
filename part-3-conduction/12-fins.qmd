@@ -32,13 +32,13 @@ $$\theta(x) = C_1 e^{mx} + C_2 e^{-mx}$$
 
 $$\theta(x) = \theta_b e^{-mx}$$
 
-$$\dot{Q} = \sqrt{hPkA_c} \, \theta_b$$
+$$q = \sqrt{hPkA_c} \, \theta_b$$
 
 ### Adiabatic Tip
 
 $$\frac{\theta(x)}{\theta_b} = \frac{\cosh[m(L-x)]}{\cosh(mL)}$$
 
-$$\dot{Q} = \sqrt{hPkA_c} \, \theta_b \tanh(mL)$$
+$$q = \sqrt{hPkA_c} \, \theta_b \tanh(mL)$$
 
 ```{python}
 import numpy as np
@@ -71,14 +71,14 @@ print(f"Heat transfer: {Q:.2f} W")
 
 ## Fin Efficiency
 
-$$\eta_f = \frac{\dot{Q}_\text{actual}}{\dot{Q}_\text{max}} = \frac{\dot{Q}_\text{actual}}{hA_s\theta_b}$$
+$$\eta_f = \frac{q_\text{actual}}{q_\text{max}} = \frac{q_\text{actual}}{hA_s\theta_b}$$
 
 For adiabatic tip:
 $$\eta_f = \frac{\tanh(mL)}{mL}$$
 
 ## Fin Effectiveness
 
-$$\varepsilon_f = \frac{\dot{Q}_\text{with fin}}{\dot{Q}_\text{without fin}} = \frac{\dot{Q}_\text{fin}}{hA_{c,b}\theta_b}$$
+$$\varepsilon_f = \frac{q_\text{with fin}}{q_\text{without fin}} = \frac{q_\text{fin}}{hA_{c,b}\theta_b}$$
 
 Rule of thumb: $\varepsilon_f > 2$ for fins to be worthwhile.
 

@@ -22,7 +22,7 @@ To combine radiation with convection, we linearise:
 $$h_r = \varepsilon \sigma (T_s + T_\infty)(T_s^2 + T_\infty^2)$$
 
 Then:
-$$\dot{Q}_\text{total} = (h_\text{conv} + h_r) A (T_s - T_\infty)$$
+$$q_\text{total} = (h_\text{conv} + h_r) A (T_s - T_\infty)$$
 
 ```{python}
 import numpy as np

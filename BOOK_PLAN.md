@@ -493,3 +493,26 @@ Add `CoolProp` to dependencies for production use.
 3. Start with Part I (Introduction) as proof of concept
 4. Develop core Python utilities in `src/` ✓
 5. Source original papers for all correlations used
+
+---
+
+## Future Work / TODO
+
+### Design & Branding
+- [ ] **Favicon**: needs a distinctive icon for browser tabs. Tried thermal gradient circles and letter-based designs but none were satisfactory. Revisit with a graphic designer or hand-drawn approach. Should use signature palette (#E63946 hot, #264653 cold). Research showed best favicons are single bold letter or simple geometric shape, 2 colours max (see `memory/quarto-internals.md` for reference).
+- [ ] **Cover image / hero graphic** for `index.qmd` landing page
+
+### Layout & Infrastructure
+- [ ] **Publish to GitHub Pages**: `quarto publish gh-pages` (currently only master is pushed)
+- [ ] **Margin content**: the Tufte-style right margin is enabled (`margin-width: 200px`) but only Ch 4 uses it so far. Consider adding margin notes, key equations, or small figures in margins as chapters are developed
+- [ ] **Dark mode testing**: custom.scss uses `var(--bs-body-bg)` for theme-aware colours but dark mode hasn't been thoroughly tested
+
+### Content
+- [ ] **Ch 3 (Python Setup)**: referenced in BOOK_PLAN but file doesn't exist in `_quarto.yml` chapter list. Either create or fold into preface
+- [ ] **Notation audit**: `\dot{Q}` has been changed to `q` throughout. Run a full audit to ensure consistency of all symbols across chapters (especially as more content is written)
+- [ ] **Exercises**: most chapters have `<!-- TODO: Add exercises -->` placeholders
+- [ ] **Part II-IV content**: skeleton chapters need full content from lecture transcripts
+
+### Technical
+- [ ] **PDF output**: currently commented out in `_quarto.yml` due to missing figure-pdf issues. Revisit once all figures use code-fold Python generation
+- [ ] **Code collapse edge cases**: pyodide Monaco editor collapse uses a 500ms timeout heuristic; may need adjustment on slow connections

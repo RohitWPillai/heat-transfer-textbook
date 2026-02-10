@@ -27,10 +27,10 @@ Heat goes in, the flywheel spins, work comes out.
 
 From a thermodynamics perspective, these scenarios are identical. Energy input, work output. But thermodynamics has nothing to say about *how* the heat actually gets into the engine.
 
-In thermodynamics, you worked with **heat transfer rate**, denoted $\dot{Q}$ and measured in watts (W), or equivalently joules per second (J/s). You calculated $\dot{Q}$ for many problems, but you were always interested in:
+In thermodynamics, you worked with **heat transfer rate**, denoted $q$ and measured in watts (W), or equivalently joules per second (J/s). You calculated $q$ for many problems, but you were always interested in:
 
 - **Equilibrium states**: the initial and final conditions of a system
-- **Energy accounting**: how much $\dot{Q}$ was required to move from state 1 to state 2
+- **Energy accounting**: how much $q$ was required to move from state 1 to state 2
 
 Two things you were *not* interested in:
 
@@ -72,7 +72,7 @@ It helps to think of temperature as a **potential**, analogous to other driving 
 |--------|-----------|---------------|------------------------|
 | Mechanical | Height, $h$ | Mass falls | $F = mg$ |
 | Electrical | Voltage, $V$ | Current, $I$ | $V = IR$ (Ohm's law) |
-| Thermal | Temperature, $T$ | Heat, $\dot{Q}$ | $\Delta T = \dot{Q} R_{th}$ |
+| Thermal | Temperature, $T$ | Heat, $q$ | $\Delta T = q R_{th}$ |
 
 In each case:
 
@@ -306,7 +306,7 @@ Keeping track of units is essential in heat transfer. The equations involve mult
 
 | Symbol | Name | SI Units | Description |
 |--------|------|----------|-------------|
-| $\dot{Q}$ or $Q$ | Heat transfer rate | W = J/s | Total power transferred |
+| $q$ or $Q$ | Heat transfer rate | W = J/s | Total power transferred |
 | $q'$ | Heat transfer per unit length | W/m | Used for pipes and long objects |
 | $q''$ | Heat flux | W/m² | Power per unit area |
 | $\dot{q}$ | Volumetric heat generation | W/m³ | Internal heat sources |
@@ -391,7 +391,7 @@ $$E = \varepsilon \sigma T^4$$
 
 5. **Unit analysis**: A wall has thermal conductivity $k = 0.5$ W/(m·K), thickness $L = 20$ cm, and surface area $A = 10$ m². The inside surface is at 20°C and outside is at 5°C. Calculate:
    a. The heat flux $q''$ in W/m²
-   b. The total heat transfer rate $\dot{Q}$ in W
+   b. The total heat transfer rate $q$ in W
    c. Show that your answers are dimensionally consistent
 
 ::: {.callout-tip collapse="true"}

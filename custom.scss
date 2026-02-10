@@ -5,6 +5,21 @@
   color: #fff !important;
 }
 
+
+// TOC vs margin content overlap fix.
+// Quarto sets .column-margin { z-index: 998 }. The sidebar needs a higher
+// z-index so the TOC paints above margin content, but stays transparent so
+// margin images/notes remain visible below the TOC area.
+#quarto-margin-sidebar {
+  z-index: 999 !important;
+  background: transparent !important;
+}
+
+nav#TOC {
+  background-color: var(--bs-body-bg, #fff);
+  padding-bottom: 1em;
+}
+
 // Hide figure-generating code entirely (code-fold blocks)
 details.code-fold {
   display: none;

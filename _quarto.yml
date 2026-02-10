@@ -66,12 +66,15 @@ format:
       light: [flatly, custom.scss]
       dark: [darkly, custom.scss]
     grid:
-      margin-width: 350px
+      body-width: 950px
+      margin-width: 200px
     code-fold: false
-    code-tools: true
+    code-tools: false
     toc: true
     number-sections: true
     highlight-style: github
+    include-before-body:
+      - slim-layout.html
     include-after-body:
       - code-collapse.html
 

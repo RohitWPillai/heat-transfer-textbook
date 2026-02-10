@@ -42,14 +42,14 @@ In thermodynamics, you used this equation to find equilibrium states. In heat tr
 Consider a control volume with mass flowing in and out, work being done, and heat being transferred. The energy balance becomes:
 
 $$
-\dot{Q} - \dot{W} + \dot{m}_{in}\left(h + \frac{V^2}{2} + gz\right)_{in} - \dot{m}_{out}\left(h + \frac{V^2}{2} + gz\right)_{out} + \dot{E}_{gen} = \frac{dE_{st}}{dt}
+q - \dot{W} + \dot{m}_{in}\left(h + \frac{V^2}{2} + gz\right)_{in} - \dot{m}_{out}\left(h + \frac{V^2}{2} + gz\right)_{out} + \dot{E}_{gen} = \frac{dE_{st}}{dt}
 $$
 
 where:
 
 | Symbol | Name | SI Units |
 |--------|------|----------|
-| $\dot{Q}$ | Heat transfer rate | W |
+| $q$ | Heat transfer rate | W |
 | $\dot{W}$ | Work rate (power) | W |
 | $\dot{m}$ | Mass flow rate | kg/s |
 | $h$ | Specific enthalpy | J/kg |
@@ -73,7 +73,7 @@ Whatever heat enters must leave. This seems obvious, but it's a powerful constra
 
 ## Heat Transfer Quantities
 
-Recall from Chapter 1 the distinction between heat transfer rate ($\dot{Q}$, in watts), heat flux ($q''$, in W/m²), and the prime notation. Here we add one more quantity: **volumetric heat generation**.
+Recall from Chapter 1 the distinction between heat transfer rate ($q$, in watts), heat flux ($q''$, in W/m²), and the prime notation. Here we add one more quantity: **volumetric heat generation**.
 
 ### Volumetric Heat Generation
 
@@ -278,7 +278,7 @@ arrow = FancyArrowPatch(
         pe.Normal()
     ], zorder=10)
 ax1.add_patch(arrow)
-ax1.text(1.47, (3.5 + 0.7) / 2, r'$\dot{Q}$', fontsize=14,
+ax1.text(1.47, (3.5 + 0.7) / 2, r'$q$', fontsize=14,
          fontweight='bold', color=PALETTE['warm'], ha='left', va='center')
 
 # L dimension (right side of slab)
@@ -418,13 +418,13 @@ $$
 Multiplying both sides by area $A$:
 
 $$
-\dot{Q} = \frac{kA}{L} \Delta T
+q = \frac{kA}{L} \Delta T
 $$
 
 Now rearrange:
 
 $$
-\Delta T = \dot{Q} \cdot \frac{L}{kA}
+\Delta T = q \cdot \frac{L}{kA}
 $$
 
 ### The Electrical Analogy
@@ -438,7 +438,7 @@ $$
 | Thermal | Electrical |
 |---------|------------|
 | Temperature difference, $\Delta T$ | Voltage difference, $\Delta V$ |
-| Heat transfer rate, $\dot{Q}$ | Current, $I$ |
+| Heat transfer rate, $q$ | Current, $I$ |
 | Thermal resistance, $R_{th}$ | Electrical resistance, $R$ |
 
 The **thermal resistance** for conduction through a slab is:
@@ -470,7 +470,7 @@ $$
 Multiplying by area and rearranging:
 
 $$
-\Delta T = \dot{Q} \cdot \frac{1}{hA}
+\Delta T = q \cdot \frac{1}{hA}
 $$
 
 The **thermal resistance** for convection is:
@@ -496,7 +496,7 @@ $$
 The total heat transfer rate is:
 
 $$
-\dot{Q} = \frac{\Delta T_{overall}}{R_{total}}
+q = \frac{\Delta T_{overall}}{R_{total}}
 $$
 
 ### Resistances in Parallel
@@ -908,7 +908,7 @@ We'll develop these methods in later chapters. For now, recognise that the resis
 $$\dot{E}_{in} - \dot{E}_{out} + \dot{E}_{gen} = \frac{dE_{st}}{dt}$$
 
 **Heat flux definition:**
-$$q'' = \frac{\dot{Q}}{A}$$
+$$q'' = \frac{q}{A}$$
 
 **Conduction resistance:**
 $$R_{th,cond} = \frac{L}{kA}$$
@@ -917,7 +917,7 @@ $$R_{th,cond} = \frac{L}{kA}$$
 $$R_{th,conv} = \frac{1}{hA}$$
 
 **Heat transfer from resistance:**
-$$\dot{Q} = \frac{\Delta T}{R_{total}}$$
+$$q = \frac{\Delta T}{R_{total}}$$
 :::
 
 ## Exercises

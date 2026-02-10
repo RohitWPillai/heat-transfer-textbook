@@ -30,7 +30,7 @@ Heat exchangers are devices that transfer heat between two fluids. They're every
 
 ## The LMTD Method
 
-$$\dot{Q} = U A \Delta T_{lm}$$
+$$q = U A \Delta T_{lm}$$
 
 where the log-mean temperature difference is:
 
@@ -58,7 +58,7 @@ print(f"LMTD = {lmtd(dT1, dT2):.1f} °C")
 ## The Effectiveness-NTU Method
 
 **Effectiveness:**
-$$\varepsilon = \frac{\dot{Q}}{\dot{Q}_\text{max}} = \frac{\dot{Q}}{C_\text{min}(T_{h,in} - T_{c,in})}$$
+$$\varepsilon = \frac{q}{q_\text{max}} = \frac{q}{C_\text{min}(T_{h,in} - T_{c,in})}$$
 
 **Number of Transfer Units:**
 $$\text{NTU} = \frac{UA}{C_\text{min}}$$

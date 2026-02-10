@@ -128,7 +128,7 @@ We use **SI units** throughout:
 |----------|--------|---------|
 | Temperature | $T$ | K (Kelvin) |
 | Temperature difference | $\Delta T$ | K or °C (equivalent for differences) |
-| Heat transfer rate | $\dot{Q}$ | W (watts) |
+| Heat transfer rate | $q$ | W (watts) |
 | Heat flux | $q''$ | W/m² |
 | Thermal conductivity | $k$ | W/(m·K) |
 | Convective coefficient | $h$ | W/(m²·K) |
@@ -144,7 +144,7 @@ Many errors in heat transfer come from unit confusion, not conceptual misunderst
 
 | Symbol | Meaning |
 |--------|---------|
-| $\dot{Q}$ | Heat transfer rate (W) |
+| $q$ | Heat transfer rate (W) |
 | $q'$ | Heat transfer per unit length (W/m) |
 | $q''$ | Heat flux (W/m²) |
 | $\dot{q}$ | Volumetric heat generation (W/m³) |
