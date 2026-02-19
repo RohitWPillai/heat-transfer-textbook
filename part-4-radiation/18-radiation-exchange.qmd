@@ -1,0 +1,87 @@
+# Radiation Exchange
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Calculate radiation exchange between blackbodies
+- Apply the radiosity method for gray surfaces
+- Analyse radiation shields
+:::
+
+## Introduction
+
+Now we combine view factors with surface properties to calculate actual heat transfer between surfaces.
+
+<!-- TODO: Add content from Lecture 10 transcripts -->
+
+## Exchange Between Blackbodies
+
+For two blackbody surfaces:
+
+$$q_{1 \to 2} = A_1 F_{1 \to 2} \sigma (T_1^4 - T_2^4)$$
+
+```{python}
+sigma = 5.67e-8  # Stefan-Boltzmann constant
+
+def radiation_exchange_blackbody(A1, F12, T1, T2):
+    """Heat transfer between two blackbody surfaces."""
+    return A1 * F12 * sigma * (T1**4 - T2**4)
+
+# Example: Two parallel plates
+A = 1.0      # Area (m²)
+F12 = 0.6    # View factor
+T1 = 500     # K
+T2 = 300     # K
+
+Q = radiation_exchange_blackbody(A, F12, T1, T2)
+print(f"Heat transfer: {Q:.0f} W")
+```
+
+## Radiosity Method for Gray Surfaces
+
+For surfaces that aren't blackbodies, we track **radiosity** $J$: the total radiation leaving a surface.
+
+$$J_i = \varepsilon_i E_{b,i} + \rho_i G_i$$
+
+where $G_i$ is the irradiation arriving at surface $i$.
+
+### Two-Surface Enclosure
+
+$$q_{12} = \frac{\sigma(T_1^4 - T_2^4)}{\frac{1-\varepsilon_1}{\varepsilon_1 A_1} + \frac{1}{A_1 F_{12}} + \frac{1-\varepsilon_2}{\varepsilon_2 A_2}}$$
+
+```{python}
+def radiation_two_surfaces(T1, T2, eps1, eps2, A1, A2, F12):
+    """Heat transfer between two gray surfaces in an enclosure."""
+    R1 = (1 - eps1) / (eps1 * A1)       # Surface 1 resistance
+    R12 = 1 / (A1 * F12)                 # Space resistance
+    R2 = (1 - eps2) / (eps2 * A2)       # Surface 2 resistance
+
+    R_total = R1 + R12 + R2
+    return sigma * (T1**4 - T2**4) / R_total
+
+# Example
+Q = radiation_two_surfaces(T1=500, T2=300, eps1=0.8, eps2=0.6, A1=1, A2=1, F12=0.6)
+print(f"Heat transfer (gray surfaces): {Q:.0f} W")
+```
+
+## Radiation Shields
+
+A thin, low-emissivity shield between surfaces reduces heat transfer:
+
+$$q_\text{with shield} = \frac{q_\text{no shield}}{N + 1}$$
+
+for $N$ identical shields.
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+- Blackbody exchange: $q = A_1 F_{12} \sigma (T_1^4 - T_2^4)$
+- Gray surfaces: use radiosity method with resistances
+- Shields dramatically reduce radiation heat transfer
+:::
+
+## Exercises
+
+<!-- TODO: Add exercises -->

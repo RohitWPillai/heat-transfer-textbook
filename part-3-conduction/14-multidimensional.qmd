@@ -1,0 +1,99 @@
+# Multi-dimensional Conduction
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Identify when 2D/3D analysis is necessary
+- Use shape factors for steady-state problems
+- Solve 2D conduction numerically
+:::
+
+## Introduction
+
+Real objects rarely have uniform 1D temperature distributions. Corners, edges, and complex geometries require multi-dimensional analysis.
+
+<!-- TODO: Add content from Lecture 8 transcripts -->
+
+## When Is Multi-D Necessary?
+
+- Comparable dimensions in multiple directions
+- Non-uniform boundary conditions
+- Complex geometries
+
+## Conduction Shape Factors
+
+For steady 2D conduction between surfaces at $T_1$ and $T_2$:
+
+$$q = kS(T_1 - T_2)$$
+
+where $S$ is the **shape factor** (units of length).
+
+| Geometry | Shape Factor $S$ |
+|----------|-----------------|
+| Edge of two walls | 0.54 W |
+| Corner of three walls | 0.15 L |
+| Cylinder in square solid | $\frac{2\pi L}{\ln(1.08 w/D)}$ |
+
+## Numerical Solution: Finite Differences
+
+Discretise the 2D Laplace equation:
+
+$$\frac{\partial^2 T}{\partial x^2} + \frac{\partial^2 T}{\partial y^2} = 0$$
+
+becomes:
+
+$$T_{i,j} = \frac{1}{4}(T_{i+1,j} + T_{i-1,j} + T_{i,j+1} + T_{i,j-1})$$
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+def solve_2d_laplace(Nx, Ny, T_top, T_bottom, T_left, T_right, max_iter=5000, tol=1e-5):
+    """Solve 2D steady conduction using Gauss-Seidel."""
+    T = np.zeros((Ny, Nx))
+
+    # Boundary conditions
+    T[0, :] = T_top
+    T[-1, :] = T_bottom
+    T[:, 0] = T_left
+    T[:, -1] = T_right
+
+    for iteration in range(max_iter):
+        T_old = T.copy()
+
+        for i in range(1, Ny - 1):
+            for j in range(1, Nx - 1):
+                T[i, j] = 0.25 * (T[i+1, j] + T[i-1, j] + T[i, j+1] + T[i, j-1])
+
+        # Check convergence
+        if np.max(np.abs(T - T_old)) < tol:
+            print(f"Converged in {iteration} iterations")
+            break
+
+    return T
+
+# Example: Square plate with different boundary temperatures
+T = solve_2d_laplace(Nx=50, Ny=50, T_top=100, T_bottom=0, T_left=0, T_right=0)
+
+plt.figure(figsize=(8, 6))
+plt.contourf(T, levels=20, cmap='hot')
+plt.colorbar(label='Temperature (°C)')
+plt.title('2D Steady Conduction')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.show()
+```
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+- Shape factors simplify 2D steady-state calculations
+- Finite differences: discretise and iterate
+- 2D problems reveal corner and edge effects
+:::
+
+## Exercises
+
+<!-- TODO: Add exercises -->

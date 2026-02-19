@@ -1,0 +1,7 @@
+<script>
+// Force slimcontent layout on all pages for consistent body width.
+// Quarto only adds 'slimcontent' to pages with .column-margin content,
+// which causes width inconsistency. This script runs before rendering
+// (include-before-body) so the CSS grid rules apply immediately.
+document.body.classList.add('slimcontent');
+</script>

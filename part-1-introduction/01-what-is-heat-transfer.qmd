@@ -1,0 +1,427 @@
+# What is Heat Transfer?
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Explain the difference between heat transfer and thermodynamics
+- Distinguish between the three modes of heat transfer
+- Identify which mode dominates in different situations
+- Recognise heat transfer in everyday phenomena
+:::
+
+## Thermodynamics vs Heat Transfer
+
+I have a Stirling engine on my desk. It runs on any temperature difference. I can power it by placing it on my palm, setting it on a thermos of hot coffee with the lid removed, or positioning it under a desk lamp so the light heats the dark absorber plate.
+
+::: {#fig-stirling layout-ncol=2}
+
+![Powered by the warmth of a hand](../images/ch01/stirling-engine-conduction.png){#fig-stirling-cond height=220px}
+
+![Powered by a lamp from above](../images/ch01/stirling-engine-radiation.png){#fig-stirling-rad height=220px}
+
+The same Stirling engine, two different heat sources.
+:::
+
+Heat goes in, the flywheel spins, work comes out.
+
+From a thermodynamics perspective, these scenarios are identical. Energy input, work output. But thermodynamics has nothing to say about *how* the heat actually gets into the engine.
+
+In thermodynamics, you worked with **heat transfer rate**, denoted $q$ and measured in watts (W), or equivalently joules per second (J/s). You calculated $q$ for many problems, but you were always interested in:
+
+- **Equilibrium states**: the initial and final conditions of a system
+- **Energy accounting**: how much $q$ was required to move from state 1 to state 2
+
+Two things you were *not* interested in:
+
+- **Rate**: How quickly did that transfer occur?
+- **Mechanism**: By what physical process did energy enter the system?
+
+Heat transfer focuses precisely on these two questions. We want to know not just *how much* energy moves, but *how fast* and *by what means*.
+
+This distinction has real engineering consequences. Knowing that a CPU generates 100 W tells you nothing about whether it will overheat. You need to know how fast you can move that heat away, and that requires understanding heat transfer mechanisms.
+
+## Temperature: Perception vs Reality
+
+If you pull a dish from the oven and it feels hot, you assume it has a high temperature. Usually correct. But perception can be deceptive.
+
+Consider a sauna. There's a bucket of water and hot rocks in the corner. You throw water on the rocks. It evaporates instantly, filling the room with steam.
+
+![A sauna with the bucket used for throwing water on the hot rocks.](../images/ch01/sauna.png){#fig-sauna width=60%}
+
+**Does the room become hotter or colder?**
+
+If you've been in a sauna, you know it *feels* much hotter after you add the steam. But think about this thermodynamically. When you pour water on the rocks, you extract the **latent heat of vaporisation** from the rocks. The room actually contains *less* thermal energy than before.
+
+Yet your body perceives it as hotter. Why?
+
+What your body senses is not temperature directly, but **heat transfer rate**. Steam in the air dramatically increases the heat transfer coefficient at your skin. Heat flows *into* you faster. You perceive this increased heat flux as higher temperature, even though the room is thermodynamically cooler.
+
+::: {.callout-warning}
+## Key Insight
+Your body perceives *heat transfer*, not temperature. This disconnect between temperature and perceived warmth appears throughout heat transfer analysis.
+:::
+
+## Temperature as a Driving Potential
+
+Thermal energy always flows from high temperature to low temperature. This is a consequence of the second law of thermodynamics.
+
+It helps to think of temperature as a **potential**, analogous to other driving forces in physics:
+
+| System | Potential | Flow quantity | Governing relationship |
+|--------|-----------|---------------|------------------------|
+| Mechanical | Height, $h$ | Mass falls | $F = mg$ |
+| Electrical | Voltage, $V$ | Current, $I$ | $V = IR$ (Ohm's law) |
+| Thermal | Temperature, $T$ | Heat, $q$ | $\Delta T = q R_{th}$ |
+
+In each case:
+
+- A **potential difference** drives the flow
+- A **resistance** opposes the flow
+- The flow rate depends on the ratio of potential to resistance
+
+This analogy becomes mathematically precise when we develop **thermal resistance networks** in later chapters. You will solve heat transfer problems using the same techniques you learned for electrical circuits.
+
+## The Three Modes
+
+There are three distinct mechanisms for transferring thermal energy. Each has its own physics, its own governing equation, and its own set of challenges.
+
+::: {.callout-tip}
+## Course Structure
+This course will feel like three separate short courses combined into one. As we move from conduction to convection to radiation, the problem-solving approach changes significantly. Conserve your strength for radiation, which comes at the end and is unlike anything else in engineering.
+:::
+
+### Conduction
+
+::: {.callout-note appearance="simple"}
+> "Everything that living things do can be understood in terms of the jiggling of atoms."
+>
+> — Richard Feynman
+:::
+
+When you hear *conduction*, think **atomic vibration**.
+
+In a solid, atoms occupy fixed positions in a crystal lattice, but they vibrate continuously around their equilibrium positions. The amplitude of vibration corresponds to temperature: hotter atoms vibrate more vigorously.
+
+When a hot region contacts a cold region, vibrational energy transfers from atom to atom through the lattice. No bulk motion occurs; only energy propagates.
+
+![A classic experiment: heat one end of a metal rod, and wax deposits melt progressively along its length as thermal energy conducts through.](../images/ch01/conduction-experiment.png){#fig-conduction-exp}
+
+**The conduction experiment** demonstrates this clearly:
+
+1. A metal rod is mounted horizontally with wax deposits at regular intervals
+2. A burner heats one end
+3. The wax melts progressively along the rod, with pins dropping as each deposit liquefies
+4. Wax further from the heat source takes longer to melt
+
+This shows heat conducting through the solid, from the high-temperature end toward the low-temperature end. Molecules vibrate faster near the burner and slower far from it; the vibrational energy propagates through the lattice.
+
+**Everyday example**: Sitting on cold granite steps on a winter morning. The stone is colder than your body, so heat conducts *out* of you and *into* the rock. You feel this as a sensation of cold. (This also explains why metal feels colder than wood at the same temperature: metal has higher thermal conductivity, so it conducts heat away from your hand faster. See [Veritasium's explanation of this phenomenon](https://www.youtube.com/watch?v=vqDbMEdLiCs).)
+
+#### Fourier's Law
+
+The governing equation for conduction is **Fourier's law**:
+
+$$
+q'' = -k \frac{dT}{dx}
+$$ {#eq-fourier}
+
+where:
+
+| Symbol | Name | SI Units |
+|--------|------|----------|
+| $q''$ | Heat flux | W/m² |
+| $k$ | Thermal conductivity | W/(m·K) |
+| $dT/dx$ | Temperature gradient | K/m |
+
+The **negative sign** ensures that heat flows in the direction of *decreasing* temperature. If temperature decreases in the positive $x$-direction (i.e., $dT/dx < 0$), then $q'' > 0$: heat flows in the positive $x$-direction.
+
+::: {.callout-note}
+## Conduction in Fluids
+Conduction can occur in gases and liquids, but only if the fluid is **stationary** (quiescent). In practice, temperature differences cause density variations, which cause fluid motion. Once motion begins, convection dominates.
+:::
+
+### Convection
+
+When you hear *convection*, think **fluid motion**.
+
+Convection is heat transfer between a surface and a moving fluid. A cold breeze on a winter day extracts heat from your skin faster than still air would. The moving fluid carries thermal energy away.
+
+**Heat pipes** illustrate convection dramatically. These sealed copper tubes, found in laptops and spacecraft, achieve effective thermal conductivities **25 to 250 times higher** than solid copper. (For an excellent visual explanation, see [this video on how heat pipes work](https://www.youtube.com/watch?v=2HdgDGPgepA).) How do they achieve this?
+
+![Heat pipes in a laptop. These copper tubes achieve effective conductivities 25 to 250 times higher than solid copper by using fluid motion and phase change inside a sealed tube.](../images/ch01/heatpipes-laptop.png){#fig-heatpipes}
+
+Inside a heat pipe:
+
+1. Heat conducts from the hot surface into a working fluid (often water)
+2. The fluid evaporates, absorbing latent heat
+3. Vapour pressure drives the gas toward the cold end
+4. The vapour condenses, releasing latent heat
+5. Capillary action in a wick returns the liquid to the hot end
+
+The key insight: beyond the surface, **fluid motion** carries the energy. This is convection.
+
+#### The No-Slip Condition
+
+At a solid surface, fluid velocity is zero. This is the **no-slip condition**, which you may have encountered in fluid dynamics.
+
+The consequence for heat transfer: at the surface itself, there is no fluid motion. Heat must *conduct* through a thin stationary layer before the bulk flow can carry it away. This thin region is called the **boundary layer**.
+
+All the complexity of fluid motion, turbulence, and boundary layer development gets compressed into a single parameter: the **convective heat transfer coefficient**, $h$.
+
+#### Newton's Law of Cooling
+
+The governing equation for convection is **Newton's law of cooling**:
+
+$$
+q'' = h(T_s - T_\infty)
+$$ {#eq-newton}
+
+where:
+
+| Symbol | Name | SI Units |
+|--------|------|----------|
+| $q''$ | Heat flux | W/m² |
+| $h$ | Convective heat transfer coefficient | W/(m²·K) |
+| $T_s$ | Surface temperature | K |
+| $T_\infty$ | Bulk fluid temperature (far from surface) | K |
+
+This equation looks deceptively simple. In practice, **determining $h$** is the central challenge of convection heat transfer. It depends on:
+
+- Fluid properties (density, viscosity, thermal conductivity)
+- Flow velocity
+- Geometry (flat plate, cylinder, pipe, etc.)
+- Whether the flow is laminar or turbulent
+- Whether the convection is forced or natural
+
+Much of this course is devoted to finding appropriate values of $h$.
+
+### Radiation
+
+When you hear *radiation*, think **electromagnetic waves**.
+
+Radiation is fundamentally different from conduction and convection. It requires no medium; heat can radiate across a vacuum. This is why you can feel the warmth of the sun despite 150 million kilometres of empty space.
+
+![The warmth you feel from a fire is mostly radiation. You don't need to touch the flame or feel a breeze.](../images/ch01/barbecue-radiation.png){#fig-radiation width=70%}
+
+**Near an open flame**, you feel significant warmth without touching the fire (no conduction) and without a breeze blowing toward you (no convection). The heat reaches you as electromagnetic radiation, primarily in the infrared portion of the spectrum.
+
+#### The Electromagnetic Spectrum
+
+Thermal radiation spans a range of wavelengths:
+
+- **Visible light**: 400–700 nm (what your eyes detect)
+- **Infrared**: wavelengths longer than red light (thermal radiation from objects near room temperature)
+- **Ultraviolet**: wavelengths shorter than violet light
+
+All matter at non-zero temperature emits thermal radiation. You are radiating energy right now, as is everything around you.
+
+#### Stefan-Boltzmann Law
+
+The governing equation for radiative emission is the **Stefan-Boltzmann law**:
+
+$$
+E = \varepsilon \sigma T^4
+$$ {#eq-stefan-boltzmann}
+
+where:
+
+| Symbol | Name | SI Units | Notes |
+|--------|------|----------|-------|
+| $E$ | Emissive power | W/m² | Energy radiated per unit area |
+| $\varepsilon$ | Emissivity | — | Dimensionless, $0 \le \varepsilon \le 1$ |
+| $\sigma$ | Stefan-Boltzmann constant | W/(m²·K⁴) | $\sigma = 5.67 \times 10^{-8}$ |
+| $T$ | Absolute temperature | K | Must be in Kelvin |
+
+::: {.callout-important}
+## The $T^4$ Dependence
+The fourth-power dependence on temperature is critical. Unlike conduction and convection, where heat flux scales linearly with temperature difference, radiation is **highly nonlinear**:
+
+- Double the temperature → 16× the radiative power
+- Triple the temperature → 81× the radiative power
+
+This makes radiation dominant at high temperatures and often negligible at low temperatures.
+:::
+
+## When Does Each Mode Dominate?
+
+In practice, all three modes often occur simultaneously. However, one mode typically dominates:
+
+| Situation | Dominant mode | Reason |
+|-----------|---------------|--------|
+| Heat through a solid wall | Conduction | Solids cannot flow |
+| Cooling fan on electronics | Convection | Moving air carries heat away |
+| Heat from the sun | Radiation | Vacuum between sun and Earth |
+| Furnaces and metal processing | Radiation | $T^4$ dominates at high temperatures |
+| Your coffee cooling on a table | Convection + Radiation | Both contribute significantly |
+
+**General guidelines**:
+
+- **Conduction** dominates in solids and stationary fluids
+- **Convection** dominates when fluids are in motion
+- **Radiation** becomes significant above ~300°C and dominant at very high temperatures
+- In vacuum, radiation is the *only* option
+
+## Comparing the Modes with Python
+
+The following code compares heat flux from each mode for a given temperature difference. **This code is interactive**: try changing `T_s` to 1000 K and click "Run Code" to see how radiation dominates at high temperatures.
+
+```{pyodide-python}
+import matplotlib.pyplot as plt
+import numpy as np
+
+SIGMA = 5.67e-8  # Stefan-Boltzmann constant, W/(m²·K⁴)
+
+# Signature palette (inline for pyodide — no file imports in browser)
+PALETTE = {
+    'hot': '#E63946', 'warm': '#F4A261', 'cool': '#2A9D8F',
+    'text': '#1D3557', 'light_bg': '#F8F9FA',
+}
+
+def compare_heat_transfer_modes(T_s, T_inf, k=1.0, L=0.1, h=10.0, eps=0.9):
+    q_cond = k * (T_s - T_inf) / L
+    q_conv = h * (T_s - T_inf)
+    q_rad = eps * SIGMA * (T_s**4 - T_inf**4)
+    return q_cond, q_conv, q_rad
+
+# ===== TRY CHANGING THESE VALUES =====
+T_s = 400      # Surface temperature (K) — try 1000!
+T_inf = 300    # Ambient temperature (K)
+h = 10.0       # Convective coefficient (W/(m²·K))
+# =====================================
+
+q_cond, q_conv, q_rad = compare_heat_transfer_modes(T_s=T_s, T_inf=T_inf, h=h)
+modes = ['Conduction', 'Convection', 'Radiation']
+values = [q_cond, q_conv, q_rad]
+colours = [PALETTE['cool'], PALETTE['warm'], PALETTE['hot']]
+
+fig, ax = plt.subplots(figsize=(7, 3.5))
+ax.set_facecolor(PALETTE['light_bg'])
+bars = ax.barh(modes, values, color=colours, edgecolor='white', linewidth=1.5, height=0.55)
+
+for bar, val in zip(bars, values):
+    ax.text(bar.get_width() + max(values)*0.02, bar.get_y() + bar.get_height()/2,
+            f'{val:,.0f} W/m$^2$', va='center', fontsize=10, color=PALETTE['text'])
+
+ax.set_xlabel(r"Heat flux, $q''$ (W/m$^2$)", fontsize=11, color=PALETTE['text'])
+ax.set_title(rf'$T_s$ = {T_s} K,  $T_\infty$ = {T_inf} K', fontsize=11, color=PALETTE['text'])
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.tick_params(colors=PALETTE['text'])
+ax.set_xlim(0, max(values) * 1.35)
+plt.tight_layout()
+plt.show()
+
+# Show which mode dominates
+peak = max(values)
+top_modes = [m for m, v in zip(modes, values) if abs(v - peak) < 1e-6 * peak]
+if len(top_modes) == 1:
+    print(f"\nDominant mode: {top_modes[0]}")
+else:
+    print(f"\n{' and '.join(top_modes)} are tied at {peak:,.0f} W/m² each")
+```
+
+## Units and Dimensional Analysis
+
+Keeping track of units is essential in heat transfer. The equations involve multiple physical quantities, and unit errors are a common source of mistakes.
+
+### Heat Transfer Quantities
+
+| Symbol | Name | SI Units | Description |
+|--------|------|----------|-------------|
+| $q$ | Heat transfer rate | W | Total power transferred |
+| $q'$ | Heat transfer per unit length | W/m | Used for pipes and long objects |
+| $q''$ | Heat flux | W/m² | Power per unit area |
+| $\dot{q}$ | Volumetric heat generation | W/m³ | Internal heat sources |
+
+The prime notation follows a pattern: each prime adds a length dimension to the denominator.
+
+### Dimensional Consistency
+
+Every equation must be dimensionally consistent. Consider Fourier's law (@eq-fourier):
+
+$$
+q'' = -k \frac{dT}{dx}
+$$
+
+Checking units:
+
+$$
+\left[\frac{\text{W}}{\text{m}^2}\right] = \left[\frac{\text{W}}{\text{m} \cdot \text{K}}\right] \times \left[\frac{\text{K}}{\text{m}}\right] = \left[\frac{\text{W}}{\text{m}^2}\right] \quad \checkmark
+$$
+
+### Temperature: Kelvin vs Celsius
+
+For **temperature differences** ($\Delta T$), Kelvin and Celsius are interchangeable because they have the same scale:
+
+$$
+\Delta T = T_2 - T_1 = (T_2 + 273.15) - (T_1 + 273.15) = T_{2,K} - T_{1,K}
+$$
+
+For **absolute temperatures** (as in radiation), you *must* use Kelvin. The Stefan-Boltzmann law (@eq-stefan-boltzmann) requires $T$ in Kelvin because it involves $T^4$, not $\Delta T$.
+
+::: {.callout-warning}
+## The Mars Climate Orbiter
+The canonical example of unit failure is NASA's Mars Climate Orbiter (1999). The spacecraft was lost because one team used imperial units (pound-force seconds) while another expected SI units (newton-seconds) for thruster impulse calculations. The resulting navigation errors caused the spacecraft to enter the Martian atmosphere at the wrong angle and disintegrate. (See the [NASA mishap investigation report](https://llis.nasa.gov/llis_lib/pdf/1009464main1_0641-mr.pdf).)
+
+Cost: $327.6 million.
+
+**Always write units explicitly. Always check dimensional consistency.**
+:::
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+
+- **Thermodynamics** tells you *how much* energy; **heat transfer** tells you *how fast* and *by what mechanism*
+- **Temperature** is the driving potential for heat flow, analogous to voltage for current
+- **Three modes**:
+  - *Conduction*: energy transfer through atomic vibrations (solids, stationary fluids)
+  - *Convection*: energy transfer via fluid motion (moving fluids)
+  - *Radiation*: energy transfer via electromagnetic waves (no medium required)
+- **Radiation scales with $T^4$**, making it dominant at high temperatures
+- **Units matter**: always check dimensional consistency
+:::
+
+::: {.callout-important}
+## Key Equations
+
+**Fourier's law** (conduction, @eq-fourier):
+$$q'' = -k \frac{dT}{dx}$$
+
+**Newton's law of cooling** (convection, @eq-newton):
+$$q'' = h(T_s - T_\infty)$$
+
+**Stefan-Boltzmann law** (radiation, @eq-stefan-boltzmann):
+$$E = \varepsilon \sigma T^4$$
+:::
+
+## Exercises
+
+1. **Identify the dominant mode** for each scenario:
+   a. A metal spoon left in hot soup
+   b. Wind chill on a cold day
+   c. Warmth from a campfire at 2 metres distance
+   d. A CPU cooled by a heat sink with a fan
+   e. Ice cream melting in your hand
+
+2. **Sauna paradox**: Explain quantitatively why adding steam to a sauna makes it feel hotter even though you have extracted thermal energy from the rocks. What physical quantity has changed?
+
+3. **Radiation crossover**: Modify the Python function to plot the ratio $q''_{rad}/q''_{conv}$ as surface temperature increases from 300 K to 1500 K (with $T_\infty = 300$ K). At what temperature does radiation equal convection? How does this crossover temperature change if $h$ is increased to 50 W/(m²·K)?
+
+4. **Kitchen heat transfer**: Identify an example in your kitchen where all three modes occur simultaneously. Estimate which mode dominates and explain your reasoning.
+
+5. **Unit analysis**: A wall has thermal conductivity $k = 0.5$ W/(m·K), thickness $L = 20$ cm, and surface area $A = 10$ m². The inside surface is at 20°C and outside is at 5°C. Calculate:
+   a. The heat flux $q''$ in W/m²
+   b. The total heat transfer rate $q$ in W
+   c. Show that your answers are dimensionally consistent
+
+::: {.callout-tip collapse="true"}
+## Further Viewing
+Videos referenced in this chapter:
+
+- [Veritasium: Misconceptions About Temperature](https://www.youtube.com/watch?v=vqDbMEdLiCs): why metal feels colder than wood at the same temperature (referenced in Conduction section)
+- [Heat Pipes Explained](https://www.youtube.com/watch?v=2HdgDGPgepA): how phase change enables extreme thermal conductivity (referenced in Convection section)
+- [NASA Mars Climate Orbiter Mishap Report](https://llis.nasa.gov/llis_lib/pdf/1009464main1_0641-mr.pdf): official investigation into the unit conversion failure (referenced in Units section)
+:::

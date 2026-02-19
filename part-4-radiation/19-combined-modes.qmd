@@ -1,0 +1,114 @@
+# Combined Heat Transfer Modes
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Analyse problems involving radiation and convection together
+- Define radiation heat transfer coefficient
+- Solve practical combined-mode problems
+:::
+
+## Introduction
+
+In most real situations, heat transfer occurs by multiple modes simultaneously. A hot surface loses heat by both convection and radiation.
+
+<!-- TODO: Add content from Lecture 11 transcripts -->
+
+## Radiation Heat Transfer Coefficient
+
+To combine radiation with convection, we linearise:
+
+$$h_r = \varepsilon \sigma (T_s + T_\infty)(T_s^2 + T_\infty^2)$$
+
+Then:
+$$q_\text{total} = (h_\text{conv} + h_r) A (T_s - T_\infty)$$
+
+```{python}
+import numpy as np
+
+sigma = 5.67e-8
+
+def radiation_coefficient(eps, Ts, Tinf):
+    """Linearised radiation heat transfer coefficient."""
+    return eps * sigma * (Ts + Tinf) * (Ts**2 + Tinf**2)
+
+# Example
+Ts = 400  # K
+Tinf = 300  # K
+eps = 0.9
+
+h_rad = radiation_coefficient(eps, Ts, Tinf)
+print(f"Radiation coefficient: h_r = {h_rad:.1f} W/m²·K")
+
+# Compare with typical convection
+h_conv = 10  # Natural convection
+print(f"Convection coefficient: h_conv = {h_conv:.1f} W/m²·K")
+print(f"Radiation is {h_rad/h_conv:.1f}× convection")
+```
+
+## When Is Radiation Important?
+
+Radiation becomes significant when:
+- Temperatures are high (T⁴ dependence)
+- Convection is weak (natural convection, vacuum)
+- Surfaces have high emissivity
+
+```{python}
+import matplotlib.pyplot as plt
+
+Tinf = 300  # K
+eps = 0.9
+h_conv = 10  # W/m²·K
+
+Ts_range = np.linspace(310, 600, 100)
+h_rad = radiation_coefficient(eps, Ts_range, Tinf)
+
+plt.figure(figsize=(10, 5))
+plt.plot(Ts_range - 273, h_rad, 'r-', linewidth=2, label='$h_r$ (radiation)')
+plt.axhline(y=h_conv, color='b', linestyle='--', linewidth=2, label=f'$h_{{conv}}$ = {h_conv} W/m²·K')
+plt.xlabel('Surface temperature (°C)')
+plt.ylabel('Heat transfer coefficient (W/m²·K)')
+plt.title('Radiation vs Convection Coefficient')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
+```
+
+## Example: Thermos Flask
+
+A thermos minimises all three modes:
+- **Conduction**: Vacuum gap eliminates it
+- **Convection**: Vacuum prevents fluid motion
+- **Radiation**: Silvered surfaces (low ε) reduce exchange
+
+```{python}
+# Thermos analysis
+T_hot = 373   # K (boiling water)
+T_cold = 293  # K (room temperature)
+eps = 0.05    # Silvered surface
+A = 0.05      # m² inner surface
+
+# Only radiation remains (vacuum)
+Q_rad = eps * sigma * A * (T_hot**4 - T_cold**4)
+print(f"Heat loss (silvered): {Q_rad:.2f} W")
+
+# If surfaces were black
+Q_black = sigma * A * (T_hot**4 - T_cold**4)
+print(f"Heat loss (black): {Q_black:.2f} W")
+print(f"Reduction factor: {Q_black/Q_rad:.0f}×")
+```
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+- Radiation and convection often occur together
+- Linearised $h_r$ allows simple combination: $h_\text{total} = h_\text{conv} + h_r$
+- Radiation dominates at high T, low convection, high ε
+- Good insulation addresses all three modes
+:::
+
+## Exercises
+
+<!-- TODO: Add exercises -->

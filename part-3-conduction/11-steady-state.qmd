@@ -1,0 +1,91 @@
+# Steady-State Conduction
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Solve 1D steady conduction problems
+- Build and analyse thermal resistance networks
+- Handle composite walls and contact resistance
+:::
+
+## Introduction
+
+In steady state, temperatures don't change with time: $\partial T/\partial t = 0$. This simplifies analysis considerably.
+
+<!-- TODO: Add content from Lecture 6 transcripts -->
+
+## Plane Wall
+
+For 1D steady conduction through a plane wall:
+
+$$\frac{d^2 T}{dx^2} = 0 \quad \Rightarrow \quad T(x) = C_1 x + C_2$$
+
+Heat flux:
+$$q'' = \frac{k(T_1 - T_2)}{L}$$
+
+## Thermal Resistance
+
+By analogy with electrical circuits:
+
+$$q = \frac{\Delta T}{R}$$
+
+For a plane wall:
+$$R_\text{cond} = \frac{L}{kA}$$
+
+For convection:
+$$R_\text{conv} = \frac{1}{hA}$$
+
+```{python}
+def thermal_resistance_wall(L: float, k: float, A: float) -> float:
+    """Thermal resistance of a plane wall."""
+    return L / (k * A)
+
+def thermal_resistance_conv(h: float, A: float) -> float:
+    """Thermal resistance for convection."""
+    return 1 / (h * A)
+
+# Example: Wall with convection on both sides
+L = 0.2       # Wall thickness (m)
+k = 1.0       # Thermal conductivity (W/m·K)
+A = 10        # Area (m²)
+h_in = 10     # Inside h (W/m²·K)
+h_out = 25    # Outside h (W/m²·K)
+
+R_conv_in = thermal_resistance_conv(h_in, A)
+R_wall = thermal_resistance_wall(L, k, A)
+R_conv_out = thermal_resistance_conv(h_out, A)
+
+R_total = R_conv_in + R_wall + R_conv_out
+print(f"R_total = {R_total:.4f} K/W")
+```
+
+## Composite Walls
+
+Resistances in series add:
+$$R_\text{total} = R_1 + R_2 + R_3 + \cdots$$
+
+Resistances in parallel:
+$$\frac{1}{R_\text{total}} = \frac{1}{R_1} + \frac{1}{R_2} + \cdots$$
+
+## Contact Resistance
+
+At interfaces between materials:
+
+$$R''_\text{contact} = \frac{1}{h_c}$$
+
+Typical values: $10^{-4}$ to $10^{-2}$ m²·K/W
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+- Steady 1D conduction gives linear temperature profiles
+- Thermal resistance analogy simplifies complex geometries
+- Series resistances add; parallel resistances combine reciprocally
+- Contact resistance can be significant
+:::
+
+## Exercises
+
+<!-- TODO: Add exercises -->

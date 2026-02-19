@@ -1,0 +1,22 @@
+# Quarto build output
+_book/
+_freeze/
+.quarto/
+*_files/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# OS / editor
+.DS_Store
+.vscode/
+
+# Quarto intermediates
+**/*.quarto_ipynb
+*.aux
+*.log
+*.tex
+*.toc

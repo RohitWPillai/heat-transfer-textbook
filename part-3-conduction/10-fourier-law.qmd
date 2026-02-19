@@ -1,0 +1,77 @@
+# Fourier's Law and the Heat Equation
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- State and apply Fourier's law of heat conduction
+- Derive the heat diffusion equation
+- Identify appropriate boundary conditions
+:::
+
+## Introduction
+
+Conduction is heat transfer through a medium without bulk motion. At the molecular level, it's the transfer of kinetic energy from more energetic to less energetic particles.
+
+<!-- TODO: Add content from Lecture 6 transcripts -->
+
+## Fourier's Law
+
+$$q'' = -k \frac{dT}{dx}$$
+
+or in three dimensions:
+
+$$\vec{q}'' = -k \nabla T$$
+
+where $k$ is the **thermal conductivity** (W/m·K).
+
+```{python}
+# Thermal conductivities at ~300K
+materials = {
+    'Copper': 401,
+    'Aluminium': 237,
+    'Steel': 60,
+    'Glass': 1.4,
+    'Wood': 0.15,
+    'Air': 0.026,
+}
+
+print("Thermal conductivity (W/m·K):")
+for mat, k in materials.items():
+    print(f"  {mat:12s}: {k:6.2f}")
+```
+
+## The Heat Diffusion Equation
+
+Starting from energy conservation:
+
+$$\rho c_p \frac{\partial T}{\partial t} = k \nabla^2 T + \dot{q}'''$$
+
+where $\dot{q}'''$ is volumetric heat generation.
+
+In 1D with constant properties and no generation:
+
+$$\frac{\partial T}{\partial t} = \alpha \frac{\partial^2 T}{\partial x^2}$$
+
+where $\alpha = k/(\rho c_p)$ is the **thermal diffusivity**.
+
+## Boundary Conditions
+
+| Type | Name | Form |
+|------|------|------|
+| 1st | Dirichlet | $T = T_s$ (specified temperature) |
+| 2nd | Neumann | $-k\frac{\partial T}{\partial n} = q''_s$ (specified flux) |
+| 3rd | Robin | $-k\frac{\partial T}{\partial n} = h(T_s - T_\infty)$ (convection) |
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+- Fourier's law: heat flows down temperature gradients
+- Thermal conductivity varies widely between materials
+- The heat equation balances storage, conduction, and generation
+:::
+
+## Exercises
+
+<!-- TODO: Add exercises -->

@@ -1,0 +1,92 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "Heat Transfer"
+  subtitle: "An Interactive Introduction with Python"
+  author: "Rohit Pillai"
+  date: today
+  license: "CC BY"
+
+  chapters:
+    - index.qmd
+    - how-to-use.qmd
+
+    - part: "Part I: Introduction"
+      chapters:
+        - part-1-introduction/01-what-is-heat-transfer.qmd
+        - part-1-introduction/02-thermodynamic-foundations.qmd
+        - part-1-introduction/03-solving-problems.qmd
+
+    - part: "Part II: Convection"
+      chapters:
+        - part-2-convection/04-boundary-layers.qmd
+        - part-2-convection/05-dimensionless-numbers.qmd
+        - part-2-convection/06-external-convection.qmd
+        - part-2-convection/07-internal-convection.qmd
+        - part-2-convection/08-natural-convection.qmd
+        - part-2-convection/09-heat-exchangers.qmd
+
+    - part: "Part III: Conduction"
+      chapters:
+        - part-3-conduction/10-fourier-law.qmd
+        - part-3-conduction/11-steady-state.qmd
+        - part-3-conduction/12-fins.qmd
+        - part-3-conduction/13-transient.qmd
+        - part-3-conduction/14-multidimensional.qmd
+
+    - part: "Part IV: Radiation"
+      chapters:
+        - part-4-radiation/15-radiation-fundamentals.qmd
+        - part-4-radiation/16-radiative-properties.qmd
+        - part-4-radiation/17-view-factors.qmd
+        - part-4-radiation/18-radiation-exchange.qmd
+        - part-4-radiation/19-combined-modes.qmd
+
+    - references.qmd
+
+  sidebar:
+    style: docked
+    search: true
+
+filters:
+  - pyodide
+
+pyodide:
+  packages:
+    - matplotlib
+
+format:
+  html:
+    theme:
+      light: [flatly, custom.scss]
+      dark: [darkly, custom.scss]
+    grid:
+      body-width: 950px
+      margin-width: 200px
+    code-fold: false
+    code-tools: false
+    toc: true
+    number-sections: true
+    highlight-style: github
+    include-in-header:
+      - text: |
+          <script>if(localStorage.getItem("quarto-color-scheme")===null){localStorage.setItem("quarto-color-scheme","alternate")}</script>
+    include-before-body:
+      - slim-layout.html
+    include-after-body:
+      - code-collapse.html
+
+# pdf:
+#   documentclass: scrbook
+#   papersize: a4
+#   toc: true
+#   number-sections: true
+#   colorlinks: true
+
+execute:
+  freeze: auto
+  warning: false
+
+bibliography: references.bib

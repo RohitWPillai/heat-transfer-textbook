@@ -1,0 +1,93 @@
+<script>
+// Collapse long code blocks to ~10 visible lines with expand/collapse toggle.
+// Handles two Quarto code block types:
+//   1. bare code blocks:  <div class="sourceCode">...</div>
+//   2. pyodide editors:   <div class="qpyodide-editor">...</div> (created async by Monaco)
+// Note: code-fold blocks (figure code) are hidden entirely via CSS.
+
+(function () {
+  var COLLAPSE_HEIGHT = 256; // px (~10 lines at 0.82em)
+
+  function addCollapseBtn(codeEl, insertAfterEl, showLabel, hideLabel) {
+    codeEl.classList.add("code-collapsed");
+
+    var btn = document.createElement("button");
+    btn.className = "code-expand-btn";
+    btn.textContent = showLabel;
+    btn.setAttribute("aria-expanded", "false");
+
+    btn.addEventListener("click", function () {
+      if (codeEl.classList.contains("code-collapsed")) {
+        codeEl.classList.remove("code-collapsed");
+        codeEl.classList.add("code-expanded");
+        btn.textContent = hideLabel;
+        btn.setAttribute("aria-expanded", "true");
+      } else {
+        codeEl.classList.remove("code-expanded");
+        codeEl.classList.add("code-collapsed");
+        btn.textContent = showLabel;
+        btn.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    insertAfterEl.parentNode.insertBefore(btn, insertAfterEl.nextSibling);
+  }
+
+  function handleStaticBlocks() {
+    // --- Bare code blocks (not in <details>) ---
+    document.querySelectorAll("div.sourceCode").forEach(function (block) {
+      if (block.closest("details")) return;
+      if (block.classList.contains("code-collapsed")) return;
+      if (block.scrollHeight <= COLLAPSE_HEIGHT) return;
+
+      addCollapseBtn(block, block, "Show full code", "Show less");
+    });
+  }
+
+  // --- Pyodide Monaco editors (created asynchronously) ---
+  // Collapsed by default so code doesn't dominate the page.
+  // Output (plots, text) renders BELOW the toggle button, always visible.
+  function handlePyodideEditor(editorDiv) {
+    if (editorDiv.dataset.collapseHandled) return;
+    editorDiv.dataset.collapseHandled = "true";
+
+    // Wait for Monaco to render and set the editor height
+    setTimeout(function () {
+      if (editorDiv.scrollHeight <= COLLAPSE_HEIGHT) return;
+
+      // Insert button right after the editor div (inside console-area),
+      // NOT after the interactive-area. This keeps output visible below.
+      addCollapseBtn(editorDiv, editorDiv, "Show code", "Hide code");
+    }, 500);
+  }
+
+  function watchForPyodideEditors() {
+    document.querySelectorAll(".qpyodide-editor").forEach(handlePyodideEditor);
+
+    // Watch for new ones (Monaco creates them after page load)
+    var observer = new MutationObserver(function (mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        var nodes = mutations[i].addedNodes;
+        for (var j = 0; j < nodes.length; j++) {
+          if (nodes[j].nodeType !== 1) continue;
+          if (nodes[j].classList && nodes[j].classList.contains("qpyodide-editor")) {
+            handlePyodideEditor(nodes[j]);
+          }
+          var editors = nodes[j].querySelectorAll
+            ? nodes[j].querySelectorAll(".qpyodide-editor")
+            : [];
+          for (var k = 0; k < editors.length; k++) {
+            handlePyodideEditor(editors[k]);
+          }
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    handleStaticBlocks();
+    watchForPyodideEditors();
+  });
+})();
+</script>

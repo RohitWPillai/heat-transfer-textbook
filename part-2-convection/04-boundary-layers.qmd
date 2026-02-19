@@ -1,0 +1,1156 @@
+# Boundary Layer Fundamentals
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Describe how velocity and thermal boundary layers develop over a flat plate
+- Explain why turbulent flow enhances heat transfer
+- Identify the physical meaning of each term in the boundary layer equations
+- Relate boundary layer thickness to convective heat transfer efficiency
+:::
+
+## Introduction: Why Boundary Layers Matter
+
+In Chapter 2, we saw that Newton's law of cooling wraps all the complexity of convective heat transfer into a single coefficient, $h$:
+
+$$
+q'' = h(T_s - T_\infty)
+$$
+
+But $h$ is not a fluid property. You won't find it in a table of material data the way you'd look up thermal conductivity. Instead, $h$ depends on the flow velocity, the geometry of the surface, whether the flow is laminar or turbulent, and even where you are along the surface. All of these effects originate in a thin region of fluid right next to the surface: the **boundary layer**.
+
+Understanding boundary layers is how we unlock $h$. Everything that controls convective heat transfer (the velocity field, the temperature gradients, the mixing) happens in this thin region. Get the boundary layer physics right, and $h$ follows naturally.
+
+To see why this matters in practice, consider a gas turbine blade. Combustion gases at roughly 2000 K rush past blades that must survive at temperatures well below 1100 K. The blade material can't withstand the gas temperature, so engineers drill hundreds of tiny effusion cooling holes through the blade surface. Cooler air from the compressor bleeds through these holes and forms a thin protective film between the scorching gas and the metal surface. The physics is analogous to a boundary layer: a thin layer of fluid controls the heat transfer to the surface. The entire cooling strategy relies on managing the boundary layer.
+
+We'll start with something simpler: flow over a flat plate. This is the canonical system for building boundary layer intuition, and the ideas we develop here extend directly to more complex geometries.
+
+
+## The Velocity Boundary Layer
+
+When a fluid flows over a solid surface, the fluid directly touching the surface doesn't move. This is the **no-slip condition**, the same idea we introduced in Chapter 1. At the surface, the fluid velocity is zero.
+
+Away from the surface, the fluid moves at the freestream velocity $U_\infty$. Between these two extremes, there must be a transition region where the velocity increases from zero to $U_\infty$. This transition region is the **velocity boundary layer**.
+
+Consider a uniform flow approaching a flat plate. Right at the leading edge, the boundary layer is vanishingly thin: the fluid transitions from zero velocity to $U_\infty$ over a very short distance. As you move downstream along the plate, the boundary layer grows thicker. The retarding effect of the wall propagates further into the fluid because each layer of fluid "drags" the one above it through viscosity.
+
+We define the **boundary layer thickness** $\delta(x)$ as the distance from the surface where the fluid velocity reaches 99% of $U_\infty$. The velocity profile within the laminar boundary layer has a roughly parabolic shape: zero at the wall, curving smoothly up to the freestream value.
+
+The physical mechanism is **momentum diffusion**: the wall imposes zero velocity, and viscosity transmits this retarding effect upward, layer by layer. Think of it as a deck of cards: if you hold the bottom card still and drag the top one, the cards in between slide relative to each other. In a fluid, viscosity plays the role of the friction between cards.
+
+| Symbol | Name | SI Units |
+|--------|------|----------|
+| $\delta$ | Velocity boundary layer thickness | m |
+| $u$ | Velocity component in $x$-direction | m/s |
+| $v$ | Velocity component in $y$-direction | m/s |
+| $U_\infty$ | Freestream velocity | m/s |
+
+```{python}
+#| label: fig-flat-plate-bl
+#| fig-cap: "Boundary layer development over a heated flat plate. As the boundary layer thickens downstream, the convective heat transfer coefficient decreases because a thicker boundary layer acts like a thicker blanket. At the laminar-to-turbulent transition, mixing enhances heat transfer and h jumps upward."
+#| code-fold: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, Circle, FancyArrowPatch, Polygon
+from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.patheffects as pe
+import warnings
+
+plt.rcParams.update({
+    'text.usetex': True,
+    'font.family': 'serif',
+    'font.serif': ['Computer Modern Roman'],
+    'text.latex.preamble': r'\usepackage{amsmath}',
+})
+
+# ---- Signature palette and colormap ----
+PALETTE = {
+    'hot': '#E63946', 'warm': '#F4A261', 'neutral': '#E9C46A',
+    'cool': '#2A9D8F', 'cold': '#264653', 'text': '#1D3557',
+    'light_bg': '#F8F9FA', 'glow_hot': '#FFE5E5', 'glow_cold': '#E5F0F8',
+}
+
+def _hex_rgb(h):
+    h = h.lstrip('#')
+    return tuple(int(h[i:i+2], 16)/255 for i in (0, 2, 4))
+
+THERMAL_CMAP = LinearSegmentedColormap.from_list('thermal', [
+    (0.0, _hex_rgb(PALETTE['cold'])), (0.25, _hex_rgb(PALETTE['cool'])),
+    (0.5, _hex_rgb(PALETTE['neutral'])), (0.75, _hex_rgb(PALETTE['warm'])),
+    (1.0, _hex_rgb(PALETTE['hot'])),
+])
+
+def _check_overlaps(fig):
+    """Overlap detection with bbox-aware pill padding."""
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    issues = []
+    for ax in fig.axes:
+        texts = [(t, t.get_text()) for t in ax.texts
+                 if t.get_text().strip() and t.get_visible()]
+        for lbl in [ax.xaxis.label, ax.yaxis.label, ax.title]:
+            if lbl.get_text().strip() and lbl.get_visible():
+                texts.append((lbl, lbl.get_text()))
+        bboxes = []
+        for t, name in texts:
+            try:
+                bp = t.get_bbox_patch()
+                if bp is not None:
+                    bboxes.append((bp.get_window_extent(renderer), name[:30]))
+                else:
+                    bboxes.append((t.get_window_extent(renderer), name[:30]))
+            except Exception:
+                pass
+        for i in range(len(bboxes)):
+            for j in range(i + 1, len(bboxes)):
+                if bboxes[i][0].overlaps(bboxes[j][0]):
+                    issues.append(f"'{bboxes[i][1]}' ↔ '{bboxes[j][1]}'")
+    if issues:
+        warnings.warn("OVERLAPPING LABELS:\n  " + "\n  ".join(issues))
+    return issues
+
+def _check_margins(fig, margin_frac=0.05):
+    """Flag text within margin_frac of axis boundaries."""
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    issues = []
+    for ax_idx, ax in enumerate(fig.axes):
+        xlim, ylim = ax.get_xlim(), ax.get_ylim()
+        x_margin = (xlim[1] - xlim[0]) * margin_frac
+        y_margin = (ylim[1] - ylim[0]) * margin_frac
+        for t in ax.texts:
+            if not (t.get_text().strip() and t.get_visible()):
+                continue
+            try:
+                bp = t.get_bbox_patch()
+                bbox = (bp.get_window_extent(renderer) if bp
+                        else t.get_window_extent(renderer)).transformed(
+                            ax.transData.inverted())
+                edges = []
+                if bbox.x0 < xlim[0] + x_margin: edges.append('left')
+                if bbox.x1 > xlim[1] - x_margin: edges.append('right')
+                if bbox.y0 < ylim[0] + y_margin: edges.append('bottom')
+                if bbox.y1 > ylim[1] - y_margin: edges.append('top')
+                if edges:
+                    issues.append(f"'{t.get_text()[:25]}' near {'/'.join(edges)} in axes[{ax_idx}]")
+            except Exception:
+                pass
+    if issues:
+        warnings.warn("MARGIN ISSUES:\n  " + "\n  ".join(issues))
+    return issues
+
+# ---- Figure layout ----
+fig = plt.figure(figsize=(12, 8))
+fig.patch.set_facecolor('white')
+
+ax1 = fig.add_axes([0.06, 0.52, 0.88, 0.44])  # Physical diagram (top)
+ax2 = fig.add_axes([0.10, 0.08, 0.80, 0.36])  # h and delta vs x (bottom)
+
+# ========== TOP PANEL: Flat Plate with Boundary Layer ==========
+ax1.set_facecolor('white')
+ax1.set_xlim(-1.5, 12.5)
+ax1.set_ylim(-0.8, 4.2)
+
+# Plate surface (heated) — gradient fill strip
+plate_y = 0.0
+plate_x0, plate_x1 = 0.0, 11.0
+n_strips = 120
+for i in range(n_strips):
+    x0 = plate_x0 + i * (plate_x1 - plate_x0) / n_strips
+    x1s = plate_x0 + (i + 1) * (plate_x1 - plate_x0) / n_strips
+    frac = 0.6 + 0.4 * (1 - i / (n_strips - 1))  # warm to hot
+    ax1.fill([x0, x0, x1s, x1s], [-0.15, plate_y, plate_y, -0.15],
+             color=THERMAL_CMAP(frac), edgecolor='none', zorder=1)
+
+# Shadow under plate
+ax1.plot([plate_x0 + 0.03, plate_x1 + 0.03], [-0.18, -0.18],
+         color='#00000015', linewidth=8, solid_capstyle='round', zorder=0)
+
+# Plate border
+ax1.plot([plate_x0, plate_x1], [plate_y, plate_y],
+         color=PALETTE['text'], linewidth=2.5, zorder=2)
+ax1.plot([plate_x0, plate_x1], [-0.15, -0.15],
+         color=PALETTE['text'], linewidth=1.5, zorder=2)
+ax1.plot([plate_x0, plate_x0], [-0.15, plate_y],
+         color=PALETTE['text'], linewidth=1.5, zorder=2)
+ax1.plot([plate_x1, plate_x1], [-0.15, plate_y],
+         color=PALETTE['text'], linewidth=1.5, zorder=2)
+
+# Energy lines near hot plate surface
+for i in range(8):
+    x_pos = plate_x0 + 0.5 + i * 1.3
+    for j in range(3):
+        y_start = -0.15
+        x_wave = np.linspace(0, 0.12, 25)
+        y_wave = y_start - 0.05 - j * 0.08 + 0.04 * np.sin(x_wave * 50) * (1 - x_wave / 0.12)
+        ax1.plot(x_pos + x_wave, y_wave, color=PALETTE['hot'],
+                 alpha=0.3 - j * 0.08, linewidth=1.2, solid_capstyle='round')
+
+# Thermal glow near plate
+for r, alpha in [(0.8, 0.05), (0.5, 0.08), (0.3, 0.10)]:
+    circle = Circle((5.5, -0.15), r, facecolor=PALETTE['glow_hot'],
+                    edgecolor='none', alpha=alpha, zorder=0)
+    ax1.add_patch(circle)
+
+# Boundary layer edge — laminar, transition, turbulent
+x_lam_end = 4.5    # end of laminar region
+x_trans_end = 6.0   # end of transition
+x_turb_end = 11.0   # end of turbulent
+
+# Laminar BL growth: delta ~ sqrt(x)
+x_lam = np.linspace(0.01, x_lam_end, 100)
+delta_lam = 1.2 * np.sqrt(x_lam / x_lam_end)
+
+# Transition region — smooth blend
+x_trans = np.linspace(x_lam_end, x_trans_end, 50)
+delta_trans_start = delta_lam[-1]
+delta_trans_end = 1.8
+delta_trans = delta_trans_start + (delta_trans_end - delta_trans_start) * \
+              (0.5 - 0.5 * np.cos(np.pi * (x_trans - x_lam_end) / (x_trans_end - x_lam_end)))
+
+# Turbulent BL growth: delta ~ x^(4/5) (shifted)
+x_turb = np.linspace(x_trans_end, x_turb_end, 100)
+delta_turb = delta_trans_end + 0.8 * ((x_turb - x_trans_end) / (x_turb_end - x_trans_end))**0.8
+
+# Concatenate
+x_all = np.concatenate([x_lam, x_trans, x_turb])
+delta_all = np.concatenate([delta_lam, delta_trans, delta_turb])
+
+# Draw BL edge
+ax1.plot(x_all, delta_all, color=PALETTE['text'], linewidth=2, linestyle='--', zorder=3)
+
+# Region shading
+ax1.fill_between(x_lam, 0, delta_lam, color=PALETTE['cool'], alpha=0.08, zorder=1)
+ax1.fill_between(x_trans, 0, delta_trans, color=PALETTE['neutral'], alpha=0.08, zorder=1)
+ax1.fill_between(x_turb, 0, delta_turb, color=PALETTE['warm'], alpha=0.08, zorder=1)
+
+# Region labels at top
+ax1.text((0 + x_lam_end) / 2, 3.6, r'\textbf{Laminar}', fontsize=14,
+         ha='center', va='center', color=PALETTE['cool'])
+ax1.text((x_lam_end + x_trans_end) / 2, 3.6, r'\textbf{Transition}', fontsize=13,
+         ha='center', va='center', color=PALETTE['neutral'])
+ax1.text((x_trans_end + x_turb_end) / 2, 3.6, r'\textbf{Turbulent}', fontsize=14,
+         ha='center', va='center', color=PALETTE['warm'])
+
+# Vertical dashed lines for transitions
+ax1.plot([x_lam_end, x_lam_end], [-0.15, 3.9], color=PALETTE['text'],
+         linewidth=0.8, linestyle=':', zorder=1)
+ax1.plot([x_trans_end, x_trans_end], [-0.15, 3.9], color=PALETTE['text'],
+         linewidth=0.8, linestyle=':', zorder=1)
+
+# Velocity profile slices — laminar
+for x_pos in [1.0, 2.5, 4.0]:
+    delta_local = 1.2 * np.sqrt(x_pos / x_lam_end)
+    y_prof = np.linspace(0, delta_local, 40)
+    eta = y_prof / delta_local
+    u_prof = 2 * eta - eta**2  # parabolic
+    ax1.plot(x_pos + u_prof * 0.8, y_prof, color=PALETTE['cool'],
+             linewidth=1.8, zorder=4)
+    ax1.plot([x_pos, x_pos], [0, delta_local], color=PALETTE['cool'],
+             linewidth=0.5, linestyle='-', alpha=0.3, zorder=3)
+
+# Velocity profile slices — turbulent (1/7 power law, fuller)
+for x_pos in [7.5, 9.5]:
+    frac_turb = (x_pos - x_trans_end) / (x_turb_end - x_trans_end)
+    delta_local = delta_trans_end + 0.8 * frac_turb**0.8
+    y_prof = np.linspace(0.001, delta_local, 40)
+    eta = y_prof / delta_local
+    u_prof = eta**(1/7)  # 1/7 power law
+    ax1.plot(x_pos + u_prof * 0.8, y_prof, color=PALETTE['warm'],
+             linewidth=1.8, zorder=4)
+    ax1.plot([x_pos, x_pos], [0, delta_local], color=PALETTE['warm'],
+             linewidth=0.5, linestyle='-', alpha=0.3, zorder=3)
+
+# Wavy eddies in turbulent region
+np.random.seed(42)
+for _ in range(12):
+    cx = np.random.uniform(x_trans_end + 0.5, x_turb_end - 0.5)
+    frac_turb = (cx - x_trans_end) / (x_turb_end - x_trans_end)
+    delta_local = delta_trans_end + 0.8 * frac_turb**0.8
+    cy = np.random.uniform(0.3, delta_local * 0.7)
+    r = np.random.uniform(0.08, 0.18)
+    theta = np.linspace(0, 1.8 * np.pi, 30)
+    spiral_r = r * (1 - theta / (2.5 * np.pi))
+    xs = cx + spiral_r * np.cos(theta)
+    ys = cy + spiral_r * np.sin(theta)
+    ax1.plot(xs, ys, color=PALETTE['warm'], alpha=0.25, linewidth=0.8, zorder=2)
+
+# Incoming flow arrows
+for y_arr in [0.5, 1.2, 2.0, 2.8]:
+    ax1.annotate('', xy=(-0.2, y_arr), xytext=(-1.2, y_arr),
+                 arrowprops=dict(arrowstyle='->', lw=1.5, color=PALETTE['text']))
+
+# U_inf label
+ax1.text(-1.3, 2.0, r'$U_\infty$', fontsize=17, ha='right', va='center',
+         color=PALETTE['text'], fontweight='bold')
+
+# delta label
+ax1.annotate(r'$\delta(x)$', xy=(9.5, delta_turb[int(len(delta_turb)*0.7)]),
+             xytext=(10.5, 3.1),
+             fontsize=16, ha='center', va='center', color=PALETTE['text'],
+             arrowprops=dict(arrowstyle='->', color=PALETTE['text'], lw=1.2))
+
+# T_s pill label
+ax1.text(5.5, -0.55, r'$T_s$', fontsize=16, ha='center', va='center',
+         color='white', fontweight='bold',
+         bbox=dict(boxstyle='round,pad=0.25', facecolor=PALETTE['hot'],
+                  edgecolor='none'), zorder=10)
+
+# x-direction arrow
+ax1.annotate('', xy=(2.0, -0.55), xytext=(0.0, -0.55),
+             arrowprops=dict(arrowstyle='->', lw=1.5, color=PALETTE['text']))
+ax1.text(2.15, -0.55, r'$x$', fontsize=15, va='center', color=PALETTE['text'])
+
+ax1.axis('off')
+
+# ========== BOTTOM PANEL: h and delta vs x ==========
+ax2.set_facecolor(PALETTE['light_bg'])
+
+x_plot = np.linspace(0.1, 11.0, 300)
+
+# delta(x) — same shape as top panel
+delta_plot = np.zeros_like(x_plot)
+mask_lam = x_plot <= x_lam_end
+mask_trans = (x_plot > x_lam_end) & (x_plot <= x_trans_end)
+mask_turb = x_plot > x_trans_end
+
+delta_plot[mask_lam] = 1.2 * np.sqrt(x_plot[mask_lam] / x_lam_end)
+delta_plot[mask_trans] = delta_lam[-1] + (delta_trans_end - delta_lam[-1]) * \
+    (0.5 - 0.5 * np.cos(np.pi * (x_plot[mask_trans] - x_lam_end) / (x_trans_end - x_lam_end)))
+delta_plot[mask_turb] = delta_trans_end + 0.8 * \
+    ((x_plot[mask_turb] - x_trans_end) / (x_turb_end - x_trans_end))**0.8
+
+# h(x) — inversely related to delta, with jump at transition
+h_plot = np.zeros_like(x_plot)
+h_plot[mask_lam] = 3.0 / np.sqrt(x_plot[mask_lam] / x_lam_end + 0.05)
+h_plot[mask_trans] = h_plot[mask_lam][-1] + \
+    (5.5 - h_plot[mask_lam][-1]) * \
+    (0.5 - 0.5 * np.cos(np.pi * (x_plot[mask_trans] - x_lam_end) / (x_trans_end - x_lam_end)))
+h_turb_start = h_plot[mask_trans][-1] if np.any(mask_trans) else 5.5
+h_plot[mask_turb] = h_turb_start / (1 + 0.5 * ((x_plot[mask_turb] - x_trans_end) /
+                                                  (x_turb_end - x_trans_end)))
+
+# Normalize for plotting
+delta_norm = delta_plot / delta_plot.max()
+h_norm = h_plot / h_plot.max()
+
+# Region shading
+ax2.axvspan(0, x_lam_end, color=PALETTE['cool'], alpha=0.06)
+ax2.axvspan(x_lam_end, x_trans_end, color=PALETTE['neutral'], alpha=0.06)
+ax2.axvspan(x_trans_end, 11.0, color=PALETTE['warm'], alpha=0.06)
+
+# Plot h(x) and delta(x)
+ax2.plot(x_plot, h_norm, color=PALETTE['hot'], linewidth=2.5, zorder=5,
+         path_effects=[pe.Stroke(linewidth=4, foreground='white', alpha=0.7), pe.Normal()])
+ax2.plot(x_plot, delta_norm, color=PALETTE['cold'], linewidth=2.5, linestyle='--', zorder=5,
+         path_effects=[pe.Stroke(linewidth=4, foreground='white', alpha=0.7), pe.Normal()])
+
+# Direct labels (no legend)
+ax2.text(1.5, 0.88, r'$h(x)$', fontsize=16, color=PALETTE['hot'], fontweight='bold')
+ax2.text(9.0, 0.95, r'$\delta(x)$', fontsize=16, color=PALETTE['cold'], fontweight='bold')
+
+# Transition arrow annotation
+ax2.annotate(r'Transition $\rightarrow$ turbulence',
+             xy=(x_lam_end + 0.3, h_norm[np.argmin(np.abs(x_plot - (x_lam_end + 0.3)))]),
+             xytext=(2.5, 0.55), fontsize=13, color=PALETTE['text'],
+             arrowprops=dict(arrowstyle='->', color=PALETTE['text'], lw=1))
+
+# Axis styling
+ax2.set_xlabel(r'Distance from leading edge, $x$', fontsize=14, labelpad=8,
+               color=PALETTE['text'], fontweight='normal')
+ax2.set_ylabel(r'Relative magnitude', fontsize=14, labelpad=8,
+               color=PALETTE['text'], fontweight='normal')
+ax2.set_xlim(0, 11.5)
+ax2.set_ylim(0, 1.15)
+ax2.set_xticks([])
+ax2.set_yticks([])
+
+# Grid and spines
+ax2.yaxis.grid(True, linestyle='-', alpha=0.5, color='white', linewidth=2)
+ax2.xaxis.grid(False)
+ax2.set_axisbelow(True)
+ax2.spines['top'].set_visible(False)
+ax2.spines['right'].set_visible(False)
+ax2.spines['left'].set_color(PALETTE['text'])
+ax2.spines['bottom'].set_color(PALETTE['text'])
+ax2.spines['left'].set_linewidth(1.5)
+ax2.spines['bottom'].set_linewidth(1.5)
+
+# ---- Overlap and margin checks ----
+overlaps = _check_overlaps(fig)
+if overlaps:
+    print(f"WARNING: {len(overlaps)} overlapping label(s)")
+margins = _check_margins(fig)
+if margins:
+    print(f"WARNING: {len(margins)} margin issue(s)")
+
+plt.show()
+```
+
+@fig-flat-plate-bl shows the full picture. The boundary layer starts thin at the leading edge and thickens with distance. In the laminar region, $h$ decreases as $\delta$ grows because the thickening boundary layer acts as an increasingly thick insulating blanket. At the transition point, turbulent mixing kicks in: $h$ jumps sharply. In the turbulent region, $h$ decreases again as the turbulent boundary layer thickens, but it remains higher than the laminar value at the same location.
+
+
+## The Thermal Boundary Layer
+
+The same idea applies to temperature. When a fluid at temperature $T_\infty$ flows over a surface at temperature $T_s$, the fluid temperature transitions from $T_s$ at the wall to $T_\infty$ in the freestream. The region over which this transition occurs is the **thermal boundary layer**, with thickness $\delta_T(x)$.
+
+The velocity and thermal boundary layers are generally **different thicknesses**. Which one is thicker depends on how fast momentum diffuses compared to heat. This competition is characterised by the **Prandtl number** $\text{Pr} = \nu / \alpha$, where $\nu$ is the kinematic viscosity (momentum diffusivity) and $\alpha$ is the thermal diffusivity.
+
+| Symbol | Name | SI Units |
+|--------|------|----------|
+| $\text{Pr}$ | Prandtl number ($\nu / \alpha$) | (dimensionless) |
+| $\nu$ | Kinematic viscosity | m$^2$/s |
+| $\alpha$ | Thermal diffusivity | m$^2$/s |
+
+- **Pr $\ll$ 1** (liquid metals): heat diffuses much faster than momentum, so $\delta_T > \delta$. The thermal boundary layer extends well beyond the velocity boundary layer.
+- **Pr $\approx$ 1** (gases like air, Pr $\approx$ 0.7): heat and momentum diffuse at similar rates, so $\delta_T \approx \delta$.
+- **Pr $\gg$ 1** (oils, viscous liquids): momentum diffuses much faster than heat, so $\delta_T < \delta$. The temperature changes are confined to a thin layer within the velocity boundary layer.
+
+```{python}
+#| label: fig-bl-comparison
+#| fig-cap: "The relative thickness of velocity and thermal boundary layers depends on the Prandtl number. For liquid metals (Pr < 1), heat diffuses faster than momentum and the thermal boundary layer is thicker. For gases (Pr near 1), they are comparable. For oils (Pr >> 1), the thermal boundary layer is much thinner."
+#| code-fold: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, Circle
+from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.patheffects as pe
+import warnings
+
+plt.rcParams.update({
+    'text.usetex': True,
+    'font.family': 'serif',
+    'font.serif': ['Computer Modern Roman'],
+    'text.latex.preamble': r'\usepackage{amsmath}',
+})
+
+PALETTE = {
+    'hot': '#E63946', 'warm': '#F4A261', 'neutral': '#E9C46A',
+    'cool': '#2A9D8F', 'cold': '#264653', 'text': '#1D3557',
+    'light_bg': '#F8F9FA', 'glow_hot': '#FFE5E5', 'glow_cold': '#E5F0F8',
+}
+
+def _hex_rgb(h):
+    h = h.lstrip('#')
+    return tuple(int(h[i:i+2], 16)/255 for i in (0, 2, 4))
+
+THERMAL_CMAP = LinearSegmentedColormap.from_list('thermal', [
+    (0.0, _hex_rgb(PALETTE['cold'])), (0.25, _hex_rgb(PALETTE['cool'])),
+    (0.5, _hex_rgb(PALETTE['neutral'])), (0.75, _hex_rgb(PALETTE['warm'])),
+    (1.0, _hex_rgb(PALETTE['hot'])),
+])
+
+def _check_overlaps(fig):
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    issues = []
+    for ax in fig.axes:
+        texts = [(t, t.get_text()) for t in ax.texts
+                 if t.get_text().strip() and t.get_visible()]
+        for lbl in [ax.xaxis.label, ax.yaxis.label, ax.title]:
+            if lbl.get_text().strip() and lbl.get_visible():
+                texts.append((lbl, lbl.get_text()))
+        bboxes = []
+        for t, name in texts:
+            try:
+                bp = t.get_bbox_patch()
+                if bp is not None:
+                    bboxes.append((bp.get_window_extent(renderer), name[:30]))
+                else:
+                    bboxes.append((t.get_window_extent(renderer), name[:30]))
+            except Exception:
+                pass
+        for i in range(len(bboxes)):
+            for j in range(i + 1, len(bboxes)):
+                if bboxes[i][0].overlaps(bboxes[j][0]):
+                    issues.append(f"'{bboxes[i][1]}' ↔ '{bboxes[j][1]}'")
+    if issues:
+        warnings.warn("OVERLAPPING LABELS:\n  " + "\n  ".join(issues))
+    return issues
+
+def _check_margins(fig, margin_frac=0.05):
+    """Flag text within margin_frac of axis boundaries."""
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    issues = []
+    for ax_idx, ax in enumerate(fig.axes):
+        xlim, ylim = ax.get_xlim(), ax.get_ylim()
+        x_margin = (xlim[1] - xlim[0]) * margin_frac
+        y_margin = (ylim[1] - ylim[0]) * margin_frac
+        for t in ax.texts:
+            if not (t.get_text().strip() and t.get_visible()):
+                continue
+            try:
+                bp = t.get_bbox_patch()
+                bbox = (bp.get_window_extent(renderer) if bp
+                        else t.get_window_extent(renderer)).transformed(
+                            ax.transData.inverted())
+                edges = []
+                if bbox.x0 < xlim[0] + x_margin: edges.append('left')
+                if bbox.x1 > xlim[1] - x_margin: edges.append('right')
+                if bbox.y0 < ylim[0] + y_margin: edges.append('bottom')
+                if bbox.y1 > ylim[1] - y_margin: edges.append('top')
+                if edges:
+                    issues.append(f"'{t.get_text()[:25]}' near {'/'.join(edges)} in axes[{ax_idx}]")
+            except Exception:
+                pass
+    if issues:
+        warnings.warn("MARGIN ISSUES:\n  " + "\n  ".join(issues))
+    return issues
+
+fig = plt.figure(figsize=(14, 6.5))
+fig.patch.set_facecolor('white')
+
+cases = [
+    (r'(a) $\mathrm{Pr} < 1$ (liquid metals)', 0.6, 1.4),
+    (r'(b) $\mathrm{Pr} \approx 1$ (gases)', 1.0, 1.12),
+    (r'(c) $\mathrm{Pr} > 1$ (oils)', 1.4, 0.5),
+]
+
+for idx, (title, delta_v, delta_t_ratio) in enumerate(cases):
+    ax = fig.add_axes([0.03 + idx * 0.33, 0.10, 0.30, 0.82])
+    ax.set_facecolor('white')
+    ax.set_xlim(-0.5, 6.2)
+    ax.set_ylim(-0.8, 3.2)
+
+    # Heated plate at bottom
+    plate_y = 0.0
+    n_s = 60
+    for i in range(n_s):
+        x0 = 0.0 + i * 5.0 / n_s
+        x1s = 0.0 + (i + 1) * 5.0 / n_s
+        frac = 0.6 + 0.3 * (1 - i / (n_s - 1))
+        ax.fill([x0, x0, x1s, x1s], [-0.12, plate_y, plate_y, -0.12],
+                color=THERMAL_CMAP(frac), edgecolor='none', zorder=1)
+
+    ax.plot([0, 5], [plate_y, plate_y], color=PALETTE['text'], linewidth=2, zorder=2)
+    ax.plot([0, 5], [-0.12, -0.12], color=PALETTE['text'], linewidth=1, zorder=2)
+
+    # Thermal glow
+    for r, alpha in [(0.5, 0.06), (0.3, 0.10)]:
+        ax.add_patch(Circle((2.5, -0.12), r, facecolor=PALETTE['glow_hot'],
+                            edgecolor='none', alpha=alpha, zorder=0))
+
+    # Energy lines near hot plate surface
+    for i in range(4):
+        x_pos = 0.5 + i * 1.2
+        for j in range(2):
+            x_wave = np.linspace(0, 0.10, 20)
+            y_wave = -0.12 - 0.05 - j * 0.07 + 0.03 * np.sin(x_wave * 50) * (1 - x_wave / 0.10)
+            ax.plot(x_pos + x_wave, y_wave, color=PALETTE['hot'],
+                    alpha=0.25 - j * 0.08, linewidth=1.0, solid_capstyle='round')
+
+    # Velocity BL edge (solid)
+    x_bl = np.linspace(0.01, 5.0, 100)
+    delta_v_arr = delta_v * np.sqrt(x_bl / 5.0)
+    ax.plot(x_bl, delta_v_arr, color=PALETTE['text'], linewidth=2.2,
+            linestyle='-', zorder=4, label=r'$\delta$')
+
+    # Thermal BL edge (dashed, hot colour)
+    delta_t_arr = delta_v * delta_t_ratio * np.sqrt(x_bl / 5.0)
+    ax.plot(x_bl, delta_t_arr, color=PALETTE['hot'], linewidth=2.2,
+            linestyle='--', zorder=4, label=r'$\delta_T$')
+
+    # Light thermal gradient fill within thermal BL
+    for i in range(len(x_bl) - 1):
+        y_top = delta_t_arr[i]
+        if y_top > 0.02:
+            n_fill = 15
+            for j in range(n_fill):
+                y0 = j * y_top / n_fill
+                y1 = (j + 1) * y_top / n_fill
+                frac = 1.0 - j / n_fill  # hot at bottom, fading to neutral
+                ax.fill([x_bl[i], x_bl[i], x_bl[i+1], x_bl[i+1]],
+                        [y0, y1, y1, y0], color=THERMAL_CMAP(frac),
+                        alpha=0.08, edgecolor='none', zorder=1)
+
+    # Delta and delta_T labels near right side — separate when close
+    x_label = 4.5
+    dv_at_label = delta_v * np.sqrt(x_label / 5.0)
+    dt_at_label = delta_v * delta_t_ratio * np.sqrt(x_label / 5.0)
+
+    # If labels would overlap (curves nearly coincident), offset them
+    # Preserve relative ordering: whichever curve is higher keeps the higher label
+    label_gap = abs(dv_at_label - dt_at_label)
+    if label_gap < 0.55:
+        mid = (dv_at_label + dt_at_label) / 2
+        if dv_at_label >= dt_at_label:
+            dv_at_label = mid + 0.35
+            dt_at_label = mid - 0.35
+        else:
+            dv_at_label = mid - 0.35
+            dt_at_label = mid + 0.35
+
+    ax.text(5.4, dv_at_label, r'$\delta$', fontsize=15, va='center',
+            color=PALETTE['text'], fontweight='bold')
+    ax.text(5.4, dt_at_label, r'$\delta_T$', fontsize=15, va='center',
+            color=PALETTE['hot'], fontweight='bold')
+
+    # Panel title
+    ax.text(2.5, 2.8, title, fontsize=13, ha='center', va='center',
+            color=PALETTE['text'], fontweight='bold')
+
+    # Flow arrows
+    for ya in [0.8, 1.6]:
+        ax.annotate('', xy=(0.3, ya), xytext=(-0.3, ya),
+                     arrowprops=dict(arrowstyle='->', lw=1, color=PALETTE['text']))
+
+    ax.axis('off')
+
+overlaps = _check_overlaps(fig)
+if overlaps:
+    print(f"WARNING: {len(overlaps)} overlapping label(s)")
+margins = _check_margins(fig)
+if margins:
+    print(f"WARNING: {len(margins)} margin issue(s)")
+
+plt.show()
+```
+
+### Conduction at the Surface
+
+At the wall itself, the fluid isn't moving (no-slip condition). With no flow, the only mechanism for heat to enter the fluid is **conduction**. So convective heat transfer actually involves conduction at the surface, with convection taking over once the fluid is moving.
+
+We can use this insight to connect $h$ to the temperature field. At the surface, Fourier's law gives us:
+
+$$
+q'' = -k_f \left.\frac{\partial T}{\partial y}\right|_{y=0}
+$$
+
+where $k_f$ is the fluid's thermal conductivity. Newton's law of cooling gives us:
+
+$$
+q'' = h(T_s - T_\infty)
+$$
+
+Equating these two expressions:
+
+$$
+h = \frac{-k_f \left.\dfrac{\partial T}{\partial y}\right|_{y=0}}{T_s - T_\infty}
+$$ {#eq-h-from-gradient}
+
+| Symbol | Name | SI Units |
+|--------|------|----------|
+| $\delta_T$ | Thermal boundary layer thickness | m |
+| $T_s$ | Surface temperature | K |
+| $T_\infty$ | Freestream temperature | K |
+| $k_f$ | Fluid thermal conductivity | W/(m$\cdot$K) |
+
+So $h$ is completely determined by the temperature gradient at the wall. Steeper gradients mean higher $h$, and this is exactly why turbulence enhances heat transfer: turbulent mixing creates steeper temperature gradients near the wall.
+
+
+## Laminar vs Turbulent Flow
+
+### What Laminar and Turbulent Mean
+
+**Laminar flow** is orderly: fluid moves in smooth, parallel layers. Momentum transfers from one layer to the next by viscous diffusion alone, each layer gently dragging the one below it.
+
+**Turbulent flow** is chaotic: the fluid develops eddies and vortices that mix vigorously. Momentum is transferred by bulk mixing: chunks of fast-moving fluid are physically carried into slower regions and vice versa.
+
+### How Transition Happens
+
+The transition from laminar to turbulent is driven by **shear instabilities**. When the velocity difference between adjacent fluid layers becomes large enough, the orderly laminar structure can't sustain itself. Small disturbances grow into eddies, and the flow becomes turbulent.
+
+An everyday example: look at the exhaust vent of a building heating system on a cold day. Right at the vent, the steam exits in smooth, laminar streams. But the moving exhaust gas meets still air, creating a shear layer. A short distance from the vent, you'll see small eddies form. Follow it a metre or two further and it's completely chaotic, fully turbulent.
+
+There's a beautiful description of this cascade, attributed to Lewis Fry Richardson:
+
+> *Big whorls have little whorls that feed on their velocity, and little whorls have lesser whorls, and so on to viscosity.*
+
+Energy transfers from large eddies to progressively smaller ones, until the smallest eddies dissipate their energy as heat through molecular viscosity.
+
+### Effect on the Boundary Layer
+
+The turbulent boundary layer is thicker than the laminar one at the same location. But the velocity profile near the wall is much steeper in a turbulent boundary layer. Turbulent mixing homogenises the velocity across most of the boundary layer, so the fluid maintains near-freestream speed right up until very close to the wall, where it drops sharply to zero.
+
+This steeper velocity gradient at the wall means:
+
+- **Higher wall shear stress** (more friction, which is why turbulent flow increases drag)
+- **Steeper temperature gradient** at the wall (by analogy)
+- **Higher convective heat transfer coefficient** $h$
+
+### The Blanket Analogy
+
+A boundary layer is like a blanket over the surface. A thicker blanket provides more insulation, reducing heat transfer. This is exactly what we see in @fig-flat-plate-bl:
+
+- In the **laminar region**, the boundary layer grows with $x$, and $h$ steadily decreases. The blanket is getting thicker.
+- At **transition**, turbulent mixing disrupts the orderly insulating layer. $h$ jumps up, as if the blanket suddenly became much thinner and more porous.
+- In the **turbulent region**, the boundary layer continues to grow, and $h$ decreases again. But the turbulent boundary layer is a less effective blanket than a laminar one of equal thickness, so $h$ remains higher throughout.
+
+
+## Governing Equations {#sec-bl-governing}
+
+We've built physical intuition about boundary layers. Now we need equations. We'll develop conservation equations for mass, momentum, and energy by analysing a small control volume within the boundary layer.
+
+### The Control Volume Approach
+
+Consider a tiny two-dimensional rectangular element of fluid with dimensions $dx \times dy$ sitting inside the boundary layer. We assume:
+
+- **Steady flow**: no time dependence
+- **Incompressible fluid**: constant density $\rho$
+- **Two-dimensional**: no variation in the $z$-direction
+- **Constant fluid properties**: $\mu$, $k$, $c_p$ don't change with temperature
+
+The control volume is small enough that properties vary only slightly across it, so we can use a first-order Taylor series to relate values on opposite faces.
+
+```{python}
+#| label: fig-control-volume
+#| fig-cap: "A two-dimensional control volume (dx by dy) in the boundary layer. Mass, momentum, and energy enter and leave through each face. The net balance of these fluxes produces the continuity, momentum, and energy equations."
+#| code-fold: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+import matplotlib.patheffects as pe
+import warnings
+
+plt.rcParams.update({
+    'text.usetex': True,
+    'font.family': 'serif',
+    'font.serif': ['Computer Modern Roman'],
+    'text.latex.preamble': r'\usepackage{amsmath}',
+})
+
+PALETTE = {
+    'hot': '#E63946', 'warm': '#F4A261', 'neutral': '#E9C46A',
+    'cool': '#2A9D8F', 'cold': '#264653', 'text': '#1D3557',
+    'light_bg': '#F8F9FA', 'glow_hot': '#FFE5E5', 'glow_cold': '#E5F0F8',
+}
+
+def _check_overlaps(fig):
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    issues = []
+    for ax in fig.axes:
+        texts = [(t, t.get_text()) for t in ax.texts
+                 if t.get_text().strip() and t.get_visible()]
+        for lbl in [ax.xaxis.label, ax.yaxis.label, ax.title]:
+            if lbl.get_text().strip() and lbl.get_visible():
+                texts.append((lbl, lbl.get_text()))
+        bboxes = []
+        for t, name in texts:
+            try:
+                bp = t.get_bbox_patch()
+                if bp is not None:
+                    bboxes.append((bp.get_window_extent(renderer), name[:30]))
+                else:
+                    bboxes.append((t.get_window_extent(renderer), name[:30]))
+            except Exception:
+                pass
+        for i in range(len(bboxes)):
+            for j in range(i + 1, len(bboxes)):
+                if bboxes[i][0].overlaps(bboxes[j][0]):
+                    issues.append(f"'{bboxes[i][1]}' ↔ '{bboxes[j][1]}'")
+    if issues:
+        warnings.warn("OVERLAPPING LABELS:\n  " + "\n  ".join(issues))
+    return issues
+
+def _check_margins(fig, margin_frac=0.05):
+    """Flag text within margin_frac of axis boundaries."""
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    issues = []
+    for ax_idx, ax in enumerate(fig.axes):
+        xlim, ylim = ax.get_xlim(), ax.get_ylim()
+        x_margin = (xlim[1] - xlim[0]) * margin_frac
+        y_margin = (ylim[1] - ylim[0]) * margin_frac
+        for t in ax.texts:
+            if not (t.get_text().strip() and t.get_visible()):
+                continue
+            try:
+                bp = t.get_bbox_patch()
+                bbox = (bp.get_window_extent(renderer) if bp
+                        else t.get_window_extent(renderer)).transformed(
+                            ax.transData.inverted())
+                edges = []
+                if bbox.x0 < xlim[0] + x_margin: edges.append('left')
+                if bbox.x1 > xlim[1] - x_margin: edges.append('right')
+                if bbox.y0 < ylim[0] + y_margin: edges.append('bottom')
+                if bbox.y1 > ylim[1] - y_margin: edges.append('top')
+                if edges:
+                    issues.append(f"'{t.get_text()[:25]}' near {'/'.join(edges)} in axes[{ax_idx}]")
+            except Exception:
+                pass
+    if issues:
+        warnings.warn("MARGIN ISSUES:\n  " + "\n  ".join(issues))
+    return issues
+
+fig = plt.figure(figsize=(8, 6))
+fig.patch.set_facecolor('white')
+
+ax = fig.add_axes([0.05, 0.05, 0.90, 0.90])
+ax.set_facecolor('white')
+ax.set_xlim(-3.5, 8.5)
+ax.set_ylim(-3.5, 8.0)
+
+# Control volume rectangle
+cv_left, cv_right = 0.0, 4.0
+cv_bottom, cv_top = 0.0, 4.0
+lw_cv = 2.5
+
+# Light fill
+ax.fill([cv_left, cv_left, cv_right, cv_right],
+        [cv_bottom, cv_top, cv_top, cv_bottom],
+        color=PALETTE['light_bg'], edgecolor=PALETTE['text'],
+        linewidth=lw_cv, zorder=2)
+
+# Shadow — offset rectangle outline
+sh = 0.08
+shadow_x = [cv_left+sh, cv_right+sh, cv_right+sh, cv_left+sh, cv_left+sh]
+shadow_y = [cv_bottom-sh, cv_bottom-sh, cv_top-sh, cv_top-sh, cv_bottom-sh]
+ax.plot(shadow_x, shadow_y,
+        color='#00000012', linewidth=8, solid_capstyle='round', zorder=1)
+
+# dx and dy dimension lines
+# dx — horizontal dimension inside CV (avoids crossing bottom-face flux arrows)
+ax.annotate('', xy=(3.5, 0.5), xytext=(0.5, 0.5),
+            arrowprops=dict(arrowstyle='<->', lw=1.0, color=PALETTE['text'], alpha=0.45))
+ax.text(2.0, 1.3, r'$dx$', fontsize=16, ha='center', va='center',
+        color=PALETTE['text'])
+
+# dy — vertical dimension inside CV (avoids crossing right-face flux arrows)
+ax.annotate('', xy=(3.5, 3.5), xytext=(3.5, 0.5),
+            arrowprops=dict(arrowstyle='<->', lw=1.0, color=PALETTE['text'], alpha=0.45))
+ax.text(3.15, 2.0, r'$dy$', fontsize=16, ha='center', va='center',
+        color=PALETTE['text'])
+
+# ---- Mass flux arrows (text colour) ----
+arrow_kw = dict(arrowstyle='-|>', mutation_scale=16, linewidth=2,
+                color=PALETTE['text'], zorder=5)
+
+# Left face: rho*u*dy IN
+ax.add_patch(FancyArrowPatch((-1.8, 2.0), (-0.15, 2.0), **arrow_kw))
+ax.text(-2.8, 2.0, r'$\rho u \, dy$', fontsize=14, ha='center', va='center',
+        color=PALETTE['text'])
+
+# Right face: rho*u*dy + d/dx(rho*u)*dx*dy OUT
+ax.add_patch(FancyArrowPatch((4.15, 2.0), (5.9, 2.0), **arrow_kw))
+ax.text(7.0, 2.0, r'$\left(\rho u + \dfrac{\partial (\rho u)}{\partial x}dx\right)dy$',
+        fontsize=12, ha='center', va='center', color=PALETTE['text'])
+
+# Bottom face: rho*v*dx IN
+ax.add_patch(FancyArrowPatch((2.0, -1.8), (2.0, -0.15), **arrow_kw))
+ax.text(2.0, -2.3, r'$\rho v \, dx$', fontsize=14, ha='center', va='center',
+        color=PALETTE['text'])
+
+# Top face: OUT
+ax.add_patch(FancyArrowPatch((2.0, 4.15), (2.0, 6.2), **arrow_kw))
+ax.text(2.0, 7.0, r'$\left(\rho v + \dfrac{\partial (\rho v)}{\partial y}dy\right)dx$',
+        fontsize=12, ha='center', va='center', color=PALETTE['text'])
+
+# ---- Stress arrows on faces (warm colour for thermal/momentum) ----
+# Pressure on left (pointing right)
+p_arrow_kw = dict(arrowstyle='-|>', mutation_scale=12, linewidth=1.5,
+                  color=PALETTE['cool'], zorder=5)
+ax.add_patch(FancyArrowPatch((-1.0, 3.2), (-0.15, 3.2), **p_arrow_kw))
+ax.text(-1.8, 3.2, r'$p$', fontsize=14, ha='center', va='center',
+        color=PALETTE['cool'])
+
+# Pressure on right (pointing left, i.e., into CV from right = pressure + dp/dx*dx)
+ax.add_patch(FancyArrowPatch((5.0, 3.2), (4.15, 3.2), **p_arrow_kw))
+ax.text(6.0, 3.2, r'$p + \dfrac{\partial p}{\partial x}dx$', fontsize=12,
+        ha='center', va='center', color=PALETTE['cool'])
+
+# Shear stress on bottom face (tau_yx acts tangentially, in x-direction)
+tau_kw = dict(arrowstyle='-|>', mutation_scale=12, linewidth=1.5,
+              color=PALETTE['warm'], zorder=5)
+ax.add_patch(FancyArrowPatch((-0.8, -0.7), (0.8, -0.7), **tau_kw))
+ax.text(-1.6, -0.7, r'$\tau_{yx}$', fontsize=13, ha='center', va='center',
+        color=PALETTE['warm'])
+
+# Shear stress on top face (tau_yx + d(tau)/dy * dy, also tangential)
+ax.add_patch(FancyArrowPatch((-0.8, 4.7), (1.2, 4.7), **tau_kw))
+ax.text(-1.8, 5.2, r'$\tau_{yx} + \dfrac{\partial \tau_{yx}}{\partial y}dy$',
+        fontsize=11, ha='center', va='center', color=PALETTE['warm'])
+
+# Corner labels for coordinates
+ax.annotate('', xy=(1.5, -2.7), xytext=(0.0, -2.7),
+            arrowprops=dict(arrowstyle='->', lw=1.5, color=PALETTE['text']))
+ax.text(1.7, -2.7, r'$x$', fontsize=15, va='center', color=PALETTE['text'])
+ax.annotate('', xy=(0.0, -1.4), xytext=(0.0, -2.7),
+            arrowprops=dict(arrowstyle='->', lw=1.5, color=PALETTE['text']))
+ax.text(-0.35, -1.2, r'$y$', fontsize=15, ha='center', color=PALETTE['text'])
+
+ax.axis('off')
+
+overlaps = _check_overlaps(fig)
+if overlaps:
+    print(f"WARNING: {len(overlaps)} overlapping label(s)")
+margins = _check_margins(fig)
+if margins:
+    print(f"WARNING: {len(margins)} margin issue(s)")
+
+plt.show()
+```
+
+We track what flows into and out of this element through each face (@fig-control-volume). On the left face, mass enters at rate $\rho u \, dy$. On the right face, it leaves at a slightly different rate because $u$ has changed over the distance $dx$. We relate the two using a first-order Taylor expansion. The same approach is applied to the top and bottom faces, and to momentum and energy fluxes.
+
+The full Taylor-series derivation involves careful bookkeeping across all four faces. We'll state the results and focus on what each equation *means* physically. If you want to see the bookkeeping, the continuity derivation below walks through the pattern that repeats for momentum and energy.
+
+::: {.callout-tip collapse="true"}
+## Derivation: Continuity Equation
+
+Mass enters the left face at rate $\rho u \, dy$ and leaves the right face at rate:
+
+$$
+\left(\rho u + \frac{\partial (\rho u)}{\partial x} dx\right) dy
+$$
+
+Mass enters the bottom face at rate $\rho v \, dx$ and leaves the top face at rate:
+
+$$
+\left(\rho v + \frac{\partial (\rho v)}{\partial y} dy\right) dx
+$$
+
+For steady flow, mass in = mass out. Setting the sum of inflows equal to outflows:
+
+$$
+\rho u \, dy + \rho v \, dx = \left(\rho u + \frac{\partial (\rho u)}{\partial x} dx\right) dy + \left(\rho v + \frac{\partial (\rho v)}{\partial y} dy\right) dx
+$$
+
+Cancelling terms and dividing by $dx \, dy$:
+
+$$
+\frac{\partial (\rho u)}{\partial x} + \frac{\partial (\rho v)}{\partial y} = 0
+$$
+
+For an incompressible fluid ($\rho$ = constant), this simplifies to @eq-continuity. The same Taylor-expansion approach applied to momentum fluxes and forces gives @eq-x-momentum, and applied to energy fluxes gives @eq-energy.
+:::
+
+### Continuity (Mass Conservation)
+
+$$
+\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} = 0
+$$ {#eq-continuity}
+
+This says: whatever mass enters must leave. If the fluid accelerates in $x$ (so $\partial u / \partial x > 0$), it must decelerate in $y$ (so $\partial v / \partial y < 0$) to conserve mass. The fluid can't pile up or develop voids; it has to go somewhere.
+
+### $x$-Momentum (Newton's Second Law for Fluids)
+
+$$
+u\frac{\partial u}{\partial x} + v\frac{\partial u}{\partial y} = -\frac{1}{\rho}\frac{\partial p}{\partial x} + \nu \frac{\partial^2 u}{\partial y^2}
+$$ {#eq-x-momentum}
+
+| Term | Physical meaning |
+|------|-----------------|
+| $u\,\partial u/\partial x$ | Convection of momentum in the $x$-direction |
+| $v\,\partial u/\partial y$ | Convection of momentum in the $y$-direction |
+| $-\frac{1}{\rho}\partial p/\partial x$ | Pressure gradient force |
+| $\nu\,\partial^2 u/\partial y^2$ | Viscous diffusion of momentum |
+
+The left-hand side represents **convection of momentum**: the fluid carries its own momentum as it moves. The first term on the right is the **pressure gradient**, an external push from pressure differences along the surface. The second term is **viscous diffusion**, momentum spreading through molecular friction. The kinematic viscosity $\nu = \mu / \rho$ plays the same role here that thermal diffusivity $\alpha$ plays in the energy equation.
+
+Note that the term $\partial^2 u / \partial x^2$ has been dropped. This is a **boundary layer simplification**: because the boundary layer is thin ($\delta \ll x$), gradients in the $y$-direction are much steeper than gradients in the $x$-direction.
+
+| Symbol | Name | SI Units |
+|--------|------|----------|
+| $\nu$ | Kinematic viscosity ($\mu / \rho$) | m$^2$/s |
+| $\mu$ | Dynamic viscosity | Pa$\cdot$s |
+| $\rho$ | Fluid density | kg/m$^3$ |
+| $p$ | Pressure | Pa |
+
+### Energy
+
+$$
+u\frac{\partial T}{\partial x} + v\frac{\partial T}{\partial y} = \alpha \frac{\partial^2 T}{\partial y^2}
+$$ {#eq-energy}
+
+| Term | Physical meaning |
+|------|-----------------|
+| $u\,\partial T/\partial x$ | Advection of heat in the $x$-direction |
+| $v\,\partial T/\partial y$ | Advection of heat in the $y$-direction |
+| $\alpha\,\partial^2 T/\partial y^2$ | Thermal diffusion (conduction) |
+
+The left-hand side is **advection**: the flow carries thermal energy along with it. The right-hand side is **thermal diffusion**: heat spreading through the fluid by conduction, governed by the thermal diffusivity $\alpha = k / (\rho c_p)$.
+
+We've dropped viscous dissipation (frictional heating from fluid layers rubbing against each other). For most flows at moderate velocities, this term is negligible. We've also dropped $\partial^2 T / \partial x^2$ by the same boundary layer argument used for the momentum equation.
+
+| Symbol | Name | SI Units |
+|--------|------|----------|
+| $\alpha$ | Thermal diffusivity ($k / \rho c_p$) | m$^2$/s |
+| $k$ | Thermal conductivity | W/(m$\cdot$K) |
+| $c_p$ | Specific heat capacity | J/(kg$\cdot$K) |
+
+::: {.callout-important}
+## The Equations Are Coupled
+
+Look at @eq-energy: the velocity components $u$ and $v$ appear in the energy equation. You cannot solve for the temperature field without first knowing the velocity field. This coupling (velocity affects temperature, and the governing equations must be solved together) is what makes convection fundamentally different from pure conduction.
+:::
+
+### The Structural Similarity
+
+Compare @eq-x-momentum and @eq-energy side by side. Both have the same structure:
+
+- **Left-hand side**: convection terms (flow carrying a quantity)
+- **Right-hand side**: diffusion term (a quantity spreading by molecular transport)
+
+For momentum, the diffusivity is $\nu$. For energy, it's $\alpha$. This structural similarity is not a coincidence. It's the reason dimensionless numbers like the Prandtl number ($\text{Pr} = \nu / \alpha$) are so powerful. When $\text{Pr} = 1$, the momentum and energy equations become identical in structure, and the velocity and temperature profiles have the same shape. We'll develop this idea fully in the next chapter.
+
+
+## Interactive Example: Laminar vs Turbulent Velocity Profiles {#sec-bl-interactive}
+
+The laminar (Blasius) and turbulent ($\frac{1}{7}$-power-law) velocity profiles differ dramatically near the wall. **Try modifying the code below** to explore this.
+
+```{pyodide-python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+PALETTE = {
+    'hot': '#E63946', 'warm': '#F4A261', 'neutral': '#E9C46A',
+    'cool': '#2A9D8F', 'cold': '#264653', 'text': '#1D3557',
+}
+
+# ===== Laminar vs Turbulent Velocity Profiles =====
+# Modify delta, U_inf, or n_turb and re-run to explore!
+
+delta = 0.01   # Boundary layer thickness (m) -- try changing this
+U_inf = 10.0   # Freestream velocity (m/s)
+n_turb = 7     # Power law exponent -- try 5, 7, or 9
+
+# Create y positions (0 = wall, delta = BL edge)
+y = np.linspace(0, delta, 500)
+eta = y / delta   # Non-dimensional distance from wall
+
+# Laminar: parabolic approximation u/U = 2*eta - eta^2
+u_laminar = U_inf * (2 * eta - eta**2)
+
+# Turbulent: 1/n power law u/U = eta^(1/n)
+u_turbulent = np.where(eta > 0, U_inf * eta**(1/n_turb), 0.0)
+
+# Wall gradient (proportional to shear stress and heat transfer)
+dy_val = y[1] - y[0]
+du_dy_lam = (u_laminar[1] - u_laminar[0]) / dy_val
+du_dy_turb = (u_turbulent[1] - u_turbulent[0]) / dy_val
+ratio = du_dy_turb / du_dy_lam
+
+# ---- Plot ----
+fig = plt.figure(figsize=(6, 5))
+ax = fig.add_axes([0.14, 0.12, 0.82, 0.84])
+
+ax.plot(u_laminar / U_inf, eta, '-', color=PALETTE['cool'], linewidth=2.5,
+        label='Laminar (parabolic)')
+ax.plot(u_turbulent / U_inf, eta, '--', color=PALETTE['warm'], linewidth=2.5,
+        label=f'Turbulent (1/{n_turb} power law)')
+
+ax.set_xlabel(r'$u \;/\; U_\infty$', fontsize=13, color=PALETTE['text'])
+ax.set_ylabel(r'$y \;/\; \delta$', fontsize=13, color=PALETTE['text'])
+ax.legend(fontsize=11, framealpha=0.9, loc='upper left')
+ax.set_xlim(0, 1.08)
+ax.set_ylim(0, 1.05)
+ax.grid(True, alpha=0.3)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.tick_params(colors=PALETTE['text'])
+
+# Annotate the steeper turbulent gradient at the wall
+ax.annotate(f'Wall gradient ratio\n(turb/lam): {ratio:.1f}x',
+            xy=(0.45, 0.02), xytext=(0.55, 0.25),
+            fontsize=10, color=PALETTE['warm'],
+            arrowprops=dict(arrowstyle='->', color=PALETTE['warm'], lw=1.2),
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
+                      edgecolor=PALETTE['warm'], alpha=0.9))
+
+plt.show()
+
+print(f"\nWall velocity gradient du/dy at y=0:")
+print(f"  Laminar:   {du_dy_lam:,.0f} 1/s")
+print(f"  Turbulent: {du_dy_turb:,.0f} 1/s")
+print(f"  Ratio: {ratio:.1f}x -- steeper gradient means higher shear stress and higher h")
+```
+
+::: {.callout-note}
+## What to Try
+1. Change `delta`. Does the *ratio* of wall gradients change?
+2. Replace the $\frac{1}{7}$ power with $\frac{1}{5}$ or $\frac{1}{9}$. How does the turbulent profile shape change?
+3. Compute the wall shear stress $\tau_w = \mu \, du/dy|_{y=0}$ for air ($\mu \approx 1.8 \times 10^{-5}$ Pa$\cdot$s) and compare laminar vs turbulent.
+:::
+
+
+## Worked Example: Estimating $h$ from a Temperature Measurement
+
+::: {.callout-note}
+## Problem
+
+A researcher measures the temperature profile inside the thermal boundary layer over a heated flat plate. At a particular location $x_0$ along the plate, the surface temperature is $T_s = 80\,°$C and the freestream temperature is $T_\infty = 20\,°$C. A thermocouple rake gives the fluid temperature at $y = 0.5$ mm as $T = 72\,°$C, and at $y = 0$ (the surface) as $T = 80\,°$C. The fluid is water at these conditions, with $k_f = 0.65$ W/(m$\cdot$K).
+
+Estimate the local convective heat transfer coefficient $h$ at $x_0$.
+:::
+
+**Solution.** From @eq-h-from-gradient, we need the temperature gradient at the wall:
+
+$$
+h = \frac{-k_f \left.\dfrac{\partial T}{\partial y}\right|_{y=0}}{T_s - T_\infty}
+$$
+
+We approximate the wall gradient from the two measurement points:
+
+$$
+\left.\frac{\partial T}{\partial y}\right|_{y=0} \approx \frac{T(y = 0.5\,\text{mm}) - T_s}{\Delta y} = \frac{72 - 80}{0.0005} = -16{,}000 \;\text{K/m}
+$$
+
+The negative sign is correct: temperature decreases away from the hot surface. Substituting:
+
+$$
+h = \frac{-0.65 \times (-16{,}000)}{80 - 20} = \frac{10{,}400}{60} = 173 \;\text{W/(m}^2\text{·K)}
+$$
+
+**Physical interpretation.** This value of $h$ is typical for forced convection of water. The steep temperature gradient at the wall ($16{,}000$ K/m over just half a millimetre) shows how thin the thermal boundary layer is. If the boundary layer were thicker, the gradient would be gentler and $h$ would be lower, consistent with the blanket analogy.
+
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+
+- **Boundary layers** are thin regions near surfaces where velocity transitions from zero (wall) to $U_\infty$ (freestream) and temperature transitions from $T_s$ to $T_\infty$
+- The **velocity** and **thermal** boundary layers may differ in thickness; the ratio depends on the Prandtl number
+- A thicker boundary layer means worse heat transfer (the **blanket analogy**)
+- **Turbulence** enhances heat transfer by creating steeper gradients at the wall through vigorous mixing
+- The **governing equations** (continuity, momentum, energy) all balance **convection** against **diffusion**
+- The velocity and energy equations have the same mathematical structure, which is why dimensionless numbers are so powerful (Chapter 5)
+:::
+
+::: {.callout-important}
+## Key Equations
+
+**Continuity:**
+$$\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} = 0$$
+
+**$x$-Momentum:**
+$$u\frac{\partial u}{\partial x} + v\frac{\partial u}{\partial y} = -\frac{1}{\rho}\frac{\partial p}{\partial x} + \nu \frac{\partial^2 u}{\partial y^2}$$
+
+**Energy:**
+$$u\frac{\partial T}{\partial x} + v\frac{\partial T}{\partial y} = \alpha \frac{\partial^2 T}{\partial y^2}$$
+
+**Convection coefficient from surface gradient:**
+$$h = \frac{-k_f \left.\dfrac{\partial T}{\partial y}\right|_{y=0}}{T_s - T_\infty}$$
+:::
+
+
+## Exercises
+
+1. **Conceptual**: Why does a thin boundary layer produce higher heat transfer than a thick one? Explain using the blanket analogy, and then explain again using @eq-h-from-gradient.
+
+2. **Sketching $h(x)$**: A flat plate is heated uniformly. Sketch qualitatively how $h$ varies with distance from the leading edge for (a) fully laminar flow, and (b) flow that transitions to turbulent at the midpoint of the plate.
+
+3. **Prandtl number and boundary layers**: For a flat plate in air (Pr $\approx$ 0.7), which is thicker: the velocity or thermal boundary layer? What about for engine oil (Pr $\approx$ 2000)? Justify your answers physically.
+
+4. **Boundary layer simplification**: Starting from the simplified energy equation (@eq-energy), argue physically why the $\partial^2 T / \partial x^2$ term is negligible compared to $\partial^2 T / \partial y^2$ in a boundary layer. (*Hint: think about what "thin" means for the ratio of characteristic lengths in $x$ and $y$.*)
+
+5. **Interactive**: Modify the laminar/turbulent profile code in @sec-bl-interactive to compute and compare the wall shear stress $\tau_w = \mu \, du/dy|_{y=0}$ for water ($\mu = 8.9 \times 10^{-4}$ Pa$\cdot$s, $\delta = 5$ mm, $U_\infty = 2$ m/s). By what factor is the turbulent wall shear stress larger than the laminar value?
+
+6. **Computational**: Write a Python script that plots the local convective heat transfer coefficient $h(x)$ for laminar flow over a flat plate using the correlation $\text{Nu}_x = 0.332\,\text{Re}_x^{1/2}\,\text{Pr}^{1/3}$ for air at 300 K ($\nu = 1.58 \times 10^{-5}$ m$^2$/s, $k = 0.026$ W/(m$\cdot$K), Pr = 0.71) with $U_\infty = 5$ m/s and plate length $L = 1$ m. How does $h$ vary with $x$? At what $x$ does the local Reynolds number reach $\text{Re}_x = 5 \times 10^5$ (the typical transition criterion)?
+
+7. **Order-of-magnitude estimate**: A gas turbine blade operates in 1800 K combustion gases with a surface temperature of 1100 K. The thermal boundary layer is approximately 2 mm thick and $k_\text{air} \approx 0.08$ W/(m$\cdot$K) at these temperatures. Estimate $h$ using $h \approx k / \delta_T$ and calculate the heat flux into the blade surface.
+
+
+::: {.callout-tip collapse="true"}
+## Further Reading
+
+- Full derivation of the boundary layer equations: Incropera & DeWitt, *Fundamentals of Heat and Mass Transfer*, Ch. 6; or Cengel & Cimbala, *Fluid Mechanics*, Ch. 10
+- Richardson's energy cascade poem and the physics of turbulence: see Davidson, *Turbulence: An Introduction for Scientists and Engineers*
+- The boundary layer concept was introduced by Ludwig Prandtl in 1904, one of the most consequential ideas in fluid mechanics
+:::

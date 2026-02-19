@@ -1,0 +1,858 @@
+# Thermodynamic Foundations
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Apply the First Law of Thermodynamics to heat transfer problems
+- Write energy balance equations for control volumes
+- Distinguish between heat transfer rate, heat flux, and volumetric generation
+- Use the thermal resistance concept to solve conduction problems
+- Draw analogies between thermal and electrical circuits
+:::
+
+## The Most Important Equation
+
+I want to jog your memory of thermodynamics, specifically the First Law.
+
+You've come across this before. The symbols might be slightly different, but the underlying ideas are the same. For a control volume, you can write an energy balance equation:
+
+$$
+\dot{E}_{in} - \dot{E}_{out} + \dot{E}_{gen} = \frac{dE_{st}}{dt}
+$$ {#eq-first-law}
+
+where:
+
+| Term | Name | SI Units | Physical meaning |
+|------|------|----------|------------------|
+| $\dot{E}_{in}$ | Rate of energy in | W | Energy entering the control volume |
+| $\dot{E}_{out}$ | Rate of energy out | W | Energy leaving the control volume |
+| $\dot{E}_{gen}$ | Rate of energy generation | W | Energy produced within the control volume |
+| $\frac{dE_{st}}{dt}$ | Rate of energy storage | W | Rate of change of energy inside |
+
+This is the equation we will use most often in this course. I would estimate it appears in nearly every problem you'll solve.
+
+::: {.callout-important}
+## The Key Difference from Thermodynamics
+In thermodynamics, you used this equation to find equilibrium states. In heat transfer, we write the $\dot{E}_{in}$, $\dot{E}_{out}$, and $\dot{E}_{gen}$ terms using **heat transfer expressions**. That's where the three modes come in.
+:::
+
+## Energy Balance on a Control Volume
+
+Consider a control volume with mass flowing in and out, work being done, and heat being transferred. The energy balance becomes:
+
+$$
+q - \dot{W} + \dot{m}_{in}\left(h + \frac{V^2}{2} + gz\right)_{in} - \dot{m}_{out}\left(h + \frac{V^2}{2} + gz\right)_{out} + \dot{E}_{gen} = \frac{dE_{st}}{dt}
+$$
+
+where:
+
+| Symbol | Name | SI Units |
+|--------|------|----------|
+| $q$ | Heat transfer rate | W |
+| $\dot{W}$ | Work rate (power) | W |
+| $\dot{m}$ | Mass flow rate | kg/s |
+| $h$ | Specific enthalpy (not the convection coefficient) | J/kg |
+| $V$ | Velocity (not volume) | m/s |
+| $g$ | Gravitational acceleration | m/s² |
+| $z$ | Height | m |
+
+In many heat transfer problems, we simplify this considerably:
+
+- **No work**: $\dot{W} = 0$ (no shaft work, no boundary work)
+- **No flow**: $\dot{m}_{in} = \dot{m}_{out} = 0$ (solid or stationary fluid)
+- **Steady state**: $\frac{dE_{st}}{dt} = 0$ (conditions not changing with time)
+
+This gives us the simplified form for steady-state conduction without generation:
+
+$$
+\dot{E}_{in} = \dot{E}_{out}
+$$
+
+Whatever heat enters must leave. This seems obvious, but it's a powerful constraint.
+
+## Heat Transfer Quantities
+
+Recall from the previous chapter the distinction between heat transfer rate ($q$, in watts), heat flux ($q''$, in W/m²), and the prime notation. Here we add one more quantity: **volumetric heat generation**.
+
+### Volumetric Heat Generation
+
+The term $\dot{q}$ represents **heat generated per unit volume** inside a material:
+
+$$
+\dot{E}_{gen} = \int_V \dot{q} \, dV
+$$
+
+| Symbol | Name | SI Units |
+|--------|------|----------|
+| $\dot{q}$ | Volumetric heat generation | W/m³ |
+
+Examples of internal heat generation:
+
+- **Electrical resistance heating**: Current flowing through a wire dissipates $I^2 R$ as heat
+- **Nuclear reactions**: Fuel rods in a reactor generate heat internally
+- **Chemical reactions**: Exothermic reactions release heat throughout a volume
+- **Microwave heating**: Electromagnetic energy absorbed uniformly in food
+
+If generation is uniform:
+
+$$
+\dot{E}_{gen} = \dot{q} \cdot V
+$$
+
+## Steady State vs Transient
+
+Two broad categories of heat transfer problems:
+
+**Steady state**: Temperatures don't change with time. $\frac{dE_{st}}{dt} = 0$.
+
+- The temperature at every point is constant
+- Energy in equals energy out (plus any generation)
+- Easier to solve: no time derivatives
+
+**Transient** (or unsteady): Temperatures change with time. $\frac{dE_{st}}{dt} \neq 0$.
+
+- The system is heating up or cooling down
+- Energy is being stored or released
+- Requires solving differential equations in time
+
+We'll start with steady-state problems because they're simpler, then tackle transient problems in the conduction chapters.
+
+## The Thermal Resistance Concept
+
+Here's where heat transfer becomes powerful. We can draw a direct analogy between heat flow and electrical current.
+
+### Derivation from Fourier's Law
+
+Consider one-dimensional steady conduction through a slab of material:
+
+- Hot surface at temperature $T_1$
+- Cold surface at temperature $T_2$
+- Thickness $L$
+- Thermal conductivity $k$
+- Cross-sectional area $A$
+
+```{python}
+#| label: fig-1d-slab
+#| fig-cap: "The linear temperature profile shows that heat flux is constant through the slab, with thermal resistance proportional to thickness."
+#| code-fold: true
+
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, Circle, FancyArrowPatch
+import matplotlib.patheffects as pe
+
+sys.path.insert(0, '../style_experiments')
+from figure_utils import PALETTE, THERMAL_CMAP, validate_figure
+
+plt.rcParams.update({
+    'text.usetex': True,
+    'font.family': 'serif',
+    'font.serif': ['Computer Modern Roman'],
+    'text.latex.preamble': r'\usepackage{amsmath}',
+})
+
+# ---- Figure layout (based on signature_style_final.py) ----
+fig = plt.figure(figsize=(12, 5))
+fig.patch.set_facecolor('white')
+
+ax1 = fig.add_axes([0.05, 0.12, 0.38, 0.80])   # Physical diagram
+ax2 = fig.add_axes([0.50, 0.12, 0.44, 0.80])   # Temperature plot
+
+T1, T2 = 100, 20
+
+# ========== LEFT: Physical System Diagram ==========
+ax1.set_xlim(-0.4, 1.7)
+ax1.set_ylim(-1.1, 5.2)
+ax1.set_facecolor('white')
+
+# Subtle glow behind hot region
+for r, alpha in [(0.6, 0.08), (0.4, 0.12), (0.25, 0.15)]:
+    circle = Circle((0.65, 4.2), r, facecolor=PALETTE['glow_hot'],
+                    edgecolor='none', alpha=alpha, zorder=0)
+    ax1.add_patch(circle)
+
+# Energy lines near hot surface (top-left)
+for i in range(4):
+    y_pos = 3.6 + (4.3 - 3.6) * (i + 0.5) / 4
+    x_wave = np.linspace(0, 0.18, 35)
+    y_wave = y_pos + 0.07 * np.sin(x_wave * 38) * (1 - x_wave / 0.18)
+    ax1.plot(0.25 - x_wave, y_wave, color=PALETTE['hot'],
+             alpha=0.45 - i * 0.07, linewidth=1.8, solid_capstyle='round')
+
+# Slab with thermal gradient (hot=top, cold=bottom)
+n_strips = 60
+slab_bottom, slab_top = 0.2, 4.0
+slab_left, slab_right = 0.25, 1.05
+
+for i in range(n_strips):
+    y0 = slab_bottom + i * (slab_top - slab_bottom) / n_strips
+    y1 = slab_bottom + (i + 1) * (slab_top - slab_bottom) / n_strips
+    frac = i / (n_strips - 1)  # 0=bottom(cold), 1=top(hot)
+    color = THERMAL_CMAP(frac)
+    ax1.fill([slab_left, slab_left, slab_right, slab_right],
+             [y0, y1, y1, y0], color=color, edgecolor='none')
+
+# Shadow behind slab
+shadow_offset = 0.025
+ax1.plot([slab_left + shadow_offset, slab_left + shadow_offset,
+          slab_right + shadow_offset, slab_right + shadow_offset],
+         [slab_bottom - shadow_offset, slab_top - shadow_offset,
+          slab_top - shadow_offset, slab_bottom - shadow_offset],
+         color='#00000015', linewidth=8, solid_capstyle='round', zorder=1)
+
+# Slab border
+ax1.plot([slab_left, slab_left, slab_right, slab_right, slab_left],
+         [slab_bottom, slab_top, slab_top, slab_bottom, slab_bottom],
+         color=PALETTE['text'], linewidth=2.5, zorder=2)
+
+# T₁ (hot) above slab — pill then description, stacked vertically
+ax1.text(0.65, 4.45, r'$T_1$', fontsize=15, ha='center', va='center',
+         color='white', fontweight='bold',
+         bbox=dict(boxstyle='round,pad=0.3', facecolor=PALETTE['hot'],
+                  edgecolor='none'), zorder=10)
+ax1.text(0.65, 4.85, r'\textit{hot surface}', fontsize=10, ha='center',
+         color=PALETTE['hot'])
+
+# T₂ (cold) below slab — pill then description, stacked vertically
+ax1.text(0.65, -0.4, r'$T_2$', fontsize=15, ha='center', va='center',
+         color='white', fontweight='bold',
+         bbox=dict(boxstyle='round,pad=0.3', facecolor=PALETTE['cold'],
+                  edgecolor='none'), zorder=10)
+ax1.text(0.65, -0.95, r'\textit{cold surface}', fontsize=10, ha='center',
+         color=PALETTE['cold'])
+
+# Heat flow arrow (right side, vertical, pointing down)
+arrow = FancyArrowPatch(
+    (1.35, 3.5), (1.35, 0.7),
+    arrowstyle='-|>', mutation_scale=20, linewidth=3,
+    color=PALETTE['warm'],
+    path_effects=[
+        pe.Stroke(linewidth=6, foreground=PALETTE['glow_hot'], alpha=0.4),
+        pe.Normal()
+    ], zorder=10)
+ax1.add_patch(arrow)
+ax1.text(1.47, (3.5 + 0.7) / 2, r'$q$', fontsize=14,
+         fontweight='bold', color=PALETTE['warm'], ha='left', va='center')
+
+# L dimension (right side of slab)
+ax1.annotate('', xy=(1.15, slab_top), xytext=(1.15, slab_bottom),
+            arrowprops=dict(arrowstyle='<|-|>', lw=1.3,
+                           color=PALETTE['text'], mutation_scale=8))
+ax1.text(1.22, (slab_top + slab_bottom) / 2, r'$L$', fontsize=12, ha='left',
+         va='center', color=PALETTE['text'], fontweight='normal')
+
+# Material property label (left side of slab)
+ax1.text(0.10, 2.25, 'Thermal', fontsize=9, ha='right',
+         va='center', color=PALETTE['text'])
+ax1.text(0.10, 1.95, 'conductivity', fontsize=9, ha='right',
+         va='center', color=PALETTE['text'])
+ax1.text(0.10, 1.55, r'$k$', fontsize=15, ha='right', va='center',
+         color=PALETTE['text'], fontweight='bold')
+
+ax1.axis('off')
+
+# ========== RIGHT: Temperature Profile Plot ==========
+ax2.set_facecolor(PALETTE['light_bg'])
+
+x = np.linspace(0, 1, 100)
+T = T1 - (T1 - T2) * x  # Linear: T1 at x=0, T2 at x=1
+
+# Gradient fill under curve
+for i in range(len(x) - 1):
+    frac = 1 - x[i]  # 1 at x=0 (hot), 0 at x=1 (cold)
+    color = THERMAL_CMAP(frac)
+    ax2.fill_between(x[i:i+2], 0, T[i:i+2], color=color, alpha=0.35)
+
+# Main line with subtle glow
+ax2.plot(x, T, color=PALETTE['text'], linewidth=3,
+         path_effects=[
+             pe.Stroke(linewidth=5, foreground='white', alpha=0.7),
+             pe.Normal()
+         ], zorder=5)
+
+# Endpoint markers
+ax2.scatter([0], [T1], s=110, color=PALETTE['hot'], zorder=10,
+            edgecolors='white', linewidths=2.5)
+ax2.scatter([1], [T2], s=110, color=PALETTE['cold'], zorder=10,
+            edgecolors='white', linewidths=2.5)
+
+# T₁/T₂ labels with annotation leader lines
+ax2.annotate(r'$T_1$', xy=(0, T1), xytext=(0.08, T1 + 8),
+            fontsize=12, ha='left', va='bottom',
+            color=PALETTE['hot'], fontweight='bold',
+            arrowprops=dict(arrowstyle='-', color=PALETTE['hot'], lw=1))
+ax2.annotate(r'$T_2$', xy=(1, T2), xytext=(0.92, T2 - 8),
+            fontsize=12, ha='right', va='top',
+            color=PALETTE['cold'], fontweight='bold',
+            arrowprops=dict(arrowstyle='-', color=PALETTE['cold'], lw=1))
+
+# Equation box (FancyBboxPatch for precise sizing)
+eq_box = FancyBboxPatch(
+    (0.26, 42), 0.48, 22,
+    boxstyle='round,pad=0.02,rounding_size=0.03',
+    facecolor='white', edgecolor=PALETTE['text'],
+    linewidth=1.5, alpha=0.95, zorder=8,
+    transform=ax2.transData)
+ax2.add_patch(eq_box)
+ax2.text(0.5, 53, r'$T(x) = T_1 - \dfrac{T_1 - T_2}{L}\, x$',
+         fontsize=11, ha='center', va='center',
+         color=PALETTE['text'], zorder=9)
+
+# Axis styling
+ax2.set_xlabel(r'Position $x/L$', fontsize=11, labelpad=8,
+               color=PALETTE['text'], fontweight='normal')
+ax2.set_ylabel(r'Temperature $T$ ($^\circ$C)', fontsize=11, labelpad=8,
+               color=PALETTE['text'], fontweight='normal')
+ax2.set_xlim(-0.12, 1.18)
+ax2.set_ylim(-5, 115)
+ax2.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
+ax2.set_yticks([0, 20, 40, 60, 80, 100])
+
+# Subtle horizontal grid
+ax2.yaxis.grid(True, linestyle='-', alpha=0.5, color='white', linewidth=2)
+ax2.xaxis.grid(False)
+ax2.set_axisbelow(True)
+
+# Spines
+ax2.spines['top'].set_visible(False)
+ax2.spines['right'].set_visible(False)
+ax2.spines['left'].set_color(PALETTE['text'])
+ax2.spines['bottom'].set_color(PALETTE['text'])
+ax2.spines['left'].set_linewidth(1.5)
+ax2.spines['bottom'].set_linewidth(1.5)
+ax2.tick_params(colors=PALETTE['text'], width=1.5, labelsize=10)
+
+# Thermal scale bar (thermometer-style reference)
+scale_x, scale_y0, scale_h = 1.08, 10, 95
+for i in range(50):
+    y0 = scale_y0 + i * scale_h / 50
+    y1 = scale_y0 + (i + 1) * scale_h / 50
+    ax2.fill([scale_x, scale_x, scale_x + 0.05, scale_x + 0.05],
+             [y0, y1, y1, y0], color=THERMAL_CMAP(i / 50), edgecolor='none')
+ax2.plot([scale_x, scale_x], [scale_y0, scale_y0 + scale_h],
+         color=PALETTE['text'], linewidth=1.2)
+ax2.plot([scale_x + 0.05, scale_x + 0.05], [scale_y0, scale_y0 + scale_h],
+         color=PALETTE['text'], linewidth=1.2)
+for frac, temp in [(0, T2), (0.5, (T1 + T2) / 2), (1, T1)]:
+    y = scale_y0 + frac * scale_h
+    ax2.plot([scale_x + 0.05, scale_x + 0.065], [y, y],
+             color=PALETTE['text'], linewidth=1)
+    ax2.text(scale_x + 0.075, y, f'{temp:.0f}' + r'$\,^\circ$C', fontsize=8,
+             va='center', color=PALETTE['text'])
+
+validate_figure(fig, strict=False)
+plt.show()
+```
+
+For steady state with no internal generation:
+
+$$
+\dot{E}_{in} = \dot{E}_{out}
+$$
+
+This means the heat flux is constant throughout the slab. Whatever enters on the hot side leaves on the cold side.
+
+Starting from Fourier's law:
+
+$$
+q'' = -k \frac{dT}{dx}
+$$
+
+For steady state with constant $k$, we can integrate:
+
+$$
+q'' = k \frac{T_1 - T_2}{L} = k \frac{\Delta T}{L}
+$$
+
+Multiplying both sides by area $A$:
+
+$$
+q = \frac{kA}{L} \Delta T
+$$
+
+Now rearrange:
+
+$$
+\Delta T = q \cdot \frac{L}{kA}
+$$
+
+### The Electrical Analogy
+
+Compare this to Ohm's law for electrical circuits:
+
+$$
+\Delta V = I \cdot R
+$$
+
+| Thermal | Electrical |
+|---------|------------|
+| Temperature difference, $\Delta T$ | Voltage difference, $\Delta V$ |
+| Heat transfer rate, $q$ | Current, $I$ |
+| Thermal resistance, $R_{th}$ | Electrical resistance, $R$ |
+
+The **thermal resistance** for conduction through a slab is:
+
+$$
+R_{th,cond} = \frac{L}{kA}
+$$ {#eq-r-cond}
+
+| Symbol | Name | SI Units |
+|--------|------|----------|
+| $R_{th}$ | Thermal resistance | K/W |
+| $L$ | Thickness | m |
+| $k$ | Thermal conductivity | W/(m·K) |
+| $A$ | Cross-sectional area | m² |
+
+::: {.callout-tip}
+## Real-World Application
+If you buy building insulation materials, they often come with a thermal resistance (R-value) specified. This analogy isn't just for solving textbook problems: it's used in construction, electronics cooling, and thermal design throughout industry.
+:::
+
+### Convective Resistance
+
+We can do the same for convection. Starting from Newton's law of cooling:
+
+$$
+q'' = h(T_s - T_\infty)
+$$
+
+Multiplying by area and rearranging:
+
+$$
+\Delta T = q \cdot \frac{1}{hA}
+$$
+
+The **thermal resistance** for convection is:
+
+$$
+R_{th,conv} = \frac{1}{hA}
+$$ {#eq-r-conv}
+
+### Resistances in Series
+
+Just like electrical resistors in series, thermal resistances add:
+
+$$
+R_{total} = R_1 + R_2 + R_3 + \cdots
+$$
+
+For heat flowing through a wall with convection on both sides:
+
+$$
+R_{total} = \frac{1}{h_1 A} + \frac{L}{kA} + \frac{1}{h_2 A}
+$$
+
+The total heat transfer rate is:
+
+$$
+q = \frac{\Delta T_{overall}}{R_{total}}
+$$
+
+### Resistances in Parallel
+
+For parallel heat flow paths:
+
+$$
+\frac{1}{R_{total}} = \frac{1}{R_1} + \frac{1}{R_2} + \frac{1}{R_3} + \cdots
+$$
+
+This applies when heat can flow through multiple paths simultaneously, such as through studs and insulation in a wall.
+
+### Composite Walls
+
+Real walls often have multiple layers with different thermal properties, and some layers may have parallel paths. @fig-thermal-network shows a composite wall with both series and parallel thermal resistances.
+
+```{python}
+#| label: fig-thermal-network
+#| fig-cap: "A composite wall with multiple materials. The physical structure (top) maps directly to a thermal resistance network (bottom). Materials in series add their resistances; materials in parallel combine as reciprocals."
+#| code-fold: true
+
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import Circle, FancyArrowPatch
+import matplotlib.patheffects as pe
+
+sys.path.insert(0, '../style_experiments')
+from figure_utils import PALETTE, THERMAL_CMAP, validate_figure
+
+plt.rcParams.update({
+    'text.usetex': True,
+    'font.family': 'serif',
+    'font.serif': ['Computer Modern Roman'],
+    'text.latex.preamble': r'\usepackage{amsmath}',
+})
+
+def _draw_resistor(ax, x0, x1, y, body_width=1.2, n_teeth=4, amp=0.2):
+    """Draw a zigzag resistor symbol from (x0,y) to (x1,y).
+    body_width fixes the zigzag size so all resistors look identical."""
+    mid = (x0 + x1) / 2
+    bx0, bx1 = mid - body_width / 2, mid + body_width / 2
+    n_pts = 2 * n_teeth + 1
+    xs = np.linspace(bx0, bx1, n_pts)
+    ys = np.full(n_pts, float(y))
+    for i in range(1, n_pts - 1):
+        ys[i] = y + amp * (1 if i % 2 == 1 else -1)
+    full_x = np.concatenate([[x0], xs, [x1]])
+    full_y = np.concatenate([[float(y)], ys, [float(y)]])
+    ax.plot(full_x, full_y, color=PALETTE['text'], linewidth=2,
+            solid_capstyle='round', zorder=3)
+
+# ---- Figure layout (based on signature_style_final.py) ----
+fig = plt.figure(figsize=(12, 8))
+fig.patch.set_facecolor('white')
+
+ax1 = fig.add_axes([0.06, 0.44, 0.88, 0.52])  # Composite wall (top)
+ax2 = fig.add_axes([0.06, 0.04, 0.88, 0.36])  # Circuit (bottom)
+
+# ========== TOP PANEL: Composite Wall ==========
+wL, wR = 0, 10
+wB, wT = 0, 4
+bE = 2.5     # E|FG boundary
+bH = 7.0     # FG|H boundary
+mY = 2.0     # F/G horizontal split
+
+ax1.set_facecolor('white')
+
+# Thermal glow near hot surface
+for r, alpha in [(1.0, 0.06), (0.7, 0.10), (0.4, 0.14)]:
+    ax1.add_patch(Circle((-0.2, 2), r, facecolor=PALETTE['glow_hot'],
+                         edgecolor='none', alpha=alpha, zorder=0))
+
+# Energy lines near hot (left) surface
+for i in range(5):
+    yp = wB + (wT - wB) * (i + 0.5) / 5
+    xw = np.linspace(0, 0.35, 30)
+    yw = yp + 0.1 * np.sin(xw * 22) * (1 - xw / 0.35)
+    ax1.plot(-xw, yw, color=PALETTE['hot'],
+             alpha=0.45 - i * 0.07, linewidth=1.8, solid_capstyle='round')
+
+# Thermal gradient fill across wall
+n_strips = 120
+for i in range(n_strips):
+    x0 = wL + i * (wR - wL) / n_strips
+    x1s = wL + (i + 1) * (wR - wL) / n_strips
+    frac = 1 - i / (n_strips - 1)
+    ax1.fill([x0, x0, x1s, x1s], [wB, wT, wT, wB],
+             color=THERMAL_CMAP(frac), edgecolor='none', zorder=1)
+
+# Shadow
+sh = 0.06
+ax1.plot([wL+sh, wL+sh, wR+sh, wR+sh],
+         [wB-sh, wT-sh, wT-sh, wB-sh],
+         color='#00000010', linewidth=10, solid_capstyle='round', zorder=0)
+
+# Wall border
+ax1.plot([wL, wL, wR, wR, wL], [wB, wT, wT, wB, wB],
+         color=PALETTE['text'], linewidth=2.5, zorder=2)
+
+# Material boundaries
+for bx in [bE, bH]:
+    ax1.plot([bx, bx], [wB, wT], color=PALETTE['text'], lw=1.5, zorder=2)
+ax1.plot([bE, bH], [mY, mY], color=PALETTE['text'], lw=1.5, zorder=2)
+
+# Material labels (semi-transparent background for readability on gradient)
+mat_bg = dict(boxstyle='round,pad=0.15', facecolor='white',
+              edgecolor='none', alpha=0.7)
+
+ax1.text(bE/2, 2.5, r'$k_\mathrm{E}$', fontsize=12, ha='center', va='center',
+         color=PALETTE['text'], bbox=mat_bg, zorder=3)
+ax1.text(bE/2, 1.5, r'\textbf{E}', fontsize=16, ha='center', va='center',
+         color=PALETTE['text'], zorder=3)
+
+ax1.text((bE+bH)/2, 3.3, r'$k_\mathrm{F}$', fontsize=12, ha='center', va='center',
+         color=PALETTE['text'], bbox=mat_bg, zorder=3)
+ax1.text((bE+bH)/2 + 1.2, 3.3, r'\textbf{F}', fontsize=16, ha='center', va='center',
+         color=PALETTE['text'], zorder=3)
+
+ax1.text((bE+bH)/2, 0.7, r'$k_\mathrm{G}$', fontsize=12, ha='center', va='center',
+         color=PALETTE['text'], bbox=mat_bg, zorder=3)
+ax1.text((bE+bH)/2 + 1.2, 0.7, r'\textbf{G}', fontsize=16, ha='center', va='center',
+         color=PALETTE['text'], zorder=3)
+
+ax1.text((bH+wR)/2, 2.5, r'$k_\mathrm{H}$', fontsize=12, ha='center', va='center',
+         color=PALETTE['text'], bbox=mat_bg, zorder=3)
+ax1.text((bH+wR)/2, 1.5, r'\textbf{H}', fontsize=16, ha='center', va='center',
+         color=PALETTE['text'], zorder=3)
+
+# T₁ pill (hot, left)
+ax1.text(-1.5, 2, r'$T_1$', fontsize=15, ha='center', va='center',
+         color='white', fontweight='bold',
+         bbox=dict(boxstyle='round,pad=0.3', facecolor=PALETTE['hot'],
+                  edgecolor='none'), zorder=10)
+ax1.plot([-0.9, wL], [2, 2], color=PALETTE['text'], linewidth=1.5, zorder=2)
+ax1.plot(-0.9, 2, 'o', color=PALETTE['text'], markersize=5, zorder=3)
+
+# T₂ pill (cold, right)
+ax1.text(11.5, 2, r'$T_2$', fontsize=15, ha='center', va='center',
+         color='white', fontweight='bold',
+         bbox=dict(boxstyle='round,pad=0.3', facecolor=PALETTE['cold'],
+                  edgecolor='none'), zorder=10)
+ax1.plot([wR, 10.9], [2, 2], color=PALETTE['text'], linewidth=1.5, zorder=2)
+ax1.plot(10.9, 2, 'o', color=PALETTE['text'], markersize=5, zorder=3)
+
+# Dimension arrows at top
+ay = 4.6
+for x0, x1, lbl in [(wL, bE, r'$L_\mathrm{E}$'),
+                     (bE, bH, r'$L_\mathrm{F} = L_\mathrm{G}$'),
+                     (bH, wR, r'$L_\mathrm{H}$')]:
+    ax1.annotate('', xy=(x1, ay), xytext=(x0, ay),
+                 arrowprops=dict(arrowstyle='<->', lw=1.3, color=PALETTE['text']))
+    ax1.text((x0+x1)/2, ay + 0.35, lbl, fontsize=11, ha='center', va='bottom',
+             color=PALETTE['text'])
+
+# Area annotation
+ax1.annotate(r'Area, $A$', xy=(wR, wT), xytext=(wR + 1.0, wT + 0.8),
+             fontsize=11, color=PALETTE['text'],
+             arrowprops=dict(arrowstyle='->', color=PALETTE['text'], lw=1.2))
+
+# x-direction arrow
+ax1.annotate('', xy=(1.5, -0.6), xytext=(0, -0.6),
+             arrowprops=dict(arrowstyle='->', lw=1.5, color=PALETTE['text']))
+ax1.text(1.7, -0.6, r'$x$', fontsize=12, va='center', color=PALETTE['text'])
+
+ax1.set_xlim(-2.2, 12.8)
+ax1.set_ylim(-1.2, 5.8)
+ax1.axis('off')
+
+# ========== BOTTOM PANEL: Resistance Network ==========
+ax2.set_facecolor('white')
+
+# Node positions
+cy = 0        # main circuit y
+py_up = 1.2   # upper parallel path
+py_dn = -1.2  # lower parallel path
+jn1 = 2.5     # junction 1 (after R_E)
+jn2 = 7.5     # junction 2 (after parallel)
+
+# Resistor positions
+re_x0, re_x1 = 0.8, 2.2   # R_E
+rf_x0, rf_x1 = 3.0, 7.0   # R_F (upper)
+rg_x0, rg_x1 = 3.0, 7.0   # R_G (lower)
+rh_x0, rh_x1 = 7.8, 9.2   # R_H
+
+# Draw resistors
+_draw_resistor(ax2, re_x0, re_x1, cy)
+_draw_resistor(ax2, rf_x0, rf_x1, py_up)
+_draw_resistor(ax2, rg_x0, rg_x1, py_dn)
+_draw_resistor(ax2, rh_x0, rh_x1, cy)
+
+# Wires
+wkw = dict(color=PALETTE['text'], linewidth=1.5, zorder=2)
+# T₁ to R_E
+ax2.plot([0.3, re_x0], [cy, cy], **wkw)
+# R_E to junction 1
+ax2.plot([re_x1, jn1], [cy, cy], **wkw)
+# Junction 1 up to R_F
+ax2.plot([jn1, jn1], [cy, py_up], **wkw)
+ax2.plot([jn1, rf_x0], [py_up, py_up], **wkw)
+# Junction 1 down to R_G
+ax2.plot([jn1, jn1], [cy, py_dn], **wkw)
+ax2.plot([jn1, rg_x0], [py_dn, py_dn], **wkw)
+# R_F to junction 2
+ax2.plot([rf_x1, jn2], [py_up, py_up], **wkw)
+ax2.plot([jn2, jn2], [py_up, cy], **wkw)
+# R_G to junction 2
+ax2.plot([rg_x1, jn2], [py_dn, py_dn], **wkw)
+ax2.plot([jn2, jn2], [py_dn, cy], **wkw)
+# Junction 2 to R_H
+ax2.plot([jn2, rh_x0], [cy, cy], **wkw)
+# R_H to T₂
+ax2.plot([rh_x1, 9.7], [cy, cy], **wkw)
+
+# Junction and terminal circles
+for jx in [jn1, jn2]:
+    ax2.plot(jx, cy, 'o', color='white', markersize=8,
+             markeredgecolor=PALETTE['text'], markeredgewidth=2, zorder=5)
+for tx in [0.3, 9.7]:
+    ax2.plot(tx, cy, 'o', color='white', markersize=8,
+             markeredgecolor=PALETTE['text'], markeredgewidth=2, zorder=5)
+
+# T₁ pill
+ax2.text(-0.3, cy, r'$T_1$', fontsize=13, ha='center', va='center',
+         color='white', fontweight='bold',
+         bbox=dict(boxstyle='round,pad=0.25', facecolor=PALETTE['hot'],
+                  edgecolor='none'), zorder=10)
+
+# T₂ pill
+ax2.text(10.3, cy, r'$T_2$', fontsize=13, ha='center', va='center',
+         color='white', fontweight='bold',
+         bbox=dict(boxstyle='round,pad=0.25', facecolor=PALETTE['cold'],
+                  edgecolor='none'), zorder=10)
+
+# Resistance labels
+rlbl_kw = dict(fontsize=11, ha='center', color=PALETTE['text'],
+               bbox=dict(boxstyle='round,pad=0.15', facecolor='white',
+                         edgecolor='none', alpha=0.9))
+
+ax2.text((re_x0+re_x1)/2, cy + 0.6, r'$\dfrac{L_\mathrm{E}}{k_\mathrm{E}\, A}$',
+         va='bottom', **rlbl_kw)
+ax2.text((rf_x0+rf_x1)/2, py_up + 0.55, r'$\dfrac{L_\mathrm{F}}{k_\mathrm{F}\,(A/2)}$',
+         va='bottom', **rlbl_kw)
+ax2.text((rg_x0+rg_x1)/2, py_dn - 0.55, r'$\dfrac{L_\mathrm{G}}{k_\mathrm{G}\,(A/2)}$',
+         va='top', **rlbl_kw)
+ax2.text((rh_x0+rh_x1)/2, cy + 0.6, r'$\dfrac{L_\mathrm{H}}{k_\mathrm{H}\, A}$',
+         va='bottom', **rlbl_kw)
+
+# Heat flow arrow (q_x) with glow
+q_arrow = FancyArrowPatch(
+    (-1.5, cy), (-0.7, cy),
+    arrowstyle='-|>', mutation_scale=18, linewidth=2.5,
+    color=PALETTE['warm'],
+    path_effects=[
+        pe.Stroke(linewidth=5, foreground=PALETTE['glow_hot'], alpha=0.4),
+        pe.Normal()
+    ], zorder=10)
+ax2.add_patch(q_arrow)
+ax2.text(-1.8, cy, r'$q_x$', fontsize=14, ha='right', va='center',
+         fontweight='bold', color=PALETTE['warm'])
+
+ax2.set_xlim(-2.5, 11.2)
+ax2.set_ylim(-2.8, 3.0)
+ax2.axis('off')
+
+validate_figure(fig, strict=False)
+plt.show()
+```
+
+The power of this approach: once you draw the resistance network, you can solve it using the same techniques you learned for electrical circuits.
+
+## Interactive Example: Thermal Resistance Network
+
+**This code is interactive.** Try changing the wall thickness, conductivity, or convection coefficients to see how the heat transfer rate changes.
+
+```{pyodide-python}
+# ===== TRY CHANGING THESE VALUES =====
+L = 0.2          # Wall thickness (m)
+k = 1.0          # Thermal conductivity (W/(m·K))
+A = 10.0         # Wall area (m²)
+h_inside = 10.0  # Inside convection coefficient (W/(m²·K))
+h_outside = 25.0 # Outside convection coefficient (W/(m²·K))
+T_in = 20.0      # Inside air temperature (°C)
+T_out = -5.0     # Outside air temperature (°C)
+# =====================================
+
+# Calculate thermal resistances
+R_conv_in = 1 / (h_inside * A)
+R_cond = L / (k * A)
+R_conv_out = 1 / (h_outside * A)
+R_total = R_conv_in + R_cond + R_conv_out
+
+# Calculate heat transfer rate
+delta_T = T_in - T_out
+Q_dot = delta_T / R_total
+
+print("Thermal Resistance Network")
+print("=" * 40)
+print(f"Inside convection:  R = {R_conv_in:.4f} K/W")
+print(f"Wall conduction:    R = {R_cond:.4f} K/W")
+print(f"Outside convection: R = {R_conv_out:.4f} K/W")
+print(f"Total resistance:   R = {R_total:.4f} K/W")
+print("=" * 40)
+print(f"Temperature difference: {delta_T:.1f} K")
+print(f"Heat transfer rate: {Q_dot:.1f} W")
+print(f"Heat flux: {Q_dot/A:.1f} W/m²")
+
+# Which resistance dominates?
+resistances = {'Inside convection': R_conv_in,
+               'Wall conduction': R_cond,
+               'Outside convection': R_conv_out}
+dominant = max(resistances, key=resistances.get)
+print(f"\nDominant resistance: {dominant}")
+```
+
+::: {.callout-note}
+## What to Try
+1. Increase the wall thickness `L`: what happens to the conduction resistance?
+2. Use a better insulator (lower `k`, say 0.04 for foam): which resistance dominates now?
+3. Increase the outside wind speed (higher `h_outside`): how much does heat loss change?
+:::
+
+## Limitations of the Resistance Analogy
+
+The thermal resistance approach is powerful but has limits. It works when:
+
+- **Steady state**: No energy storage ($\frac{dE_{st}}{dt} = 0$)
+- **One-dimensional**: Heat flows in one direction only
+- **No internal generation**: $\dot{E}_{gen} = 0$
+- **Constant properties**: $k$, $h$ don't vary with temperature
+
+When these conditions aren't met, you need more sophisticated methods:
+
+- Transient problems require differential equations in time
+- Multi-dimensional problems require numerical methods or shape factors
+- Internal generation adds source terms to the equations
+- Temperature-dependent properties make the problem nonlinear
+
+We'll develop these methods in later chapters. For now, recognise that the resistance analogy covers a surprisingly large class of practical problems.
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+
+- The **First Law** (energy balance) is the foundation of every heat transfer problem
+- For steady state: $\dot{E}_{in} = \dot{E}_{out}$ (plus any generation)
+- **Heat flux** $q''$ is heat transfer per unit area (W/m²)
+- **Thermal resistance** creates a direct analogy to electrical circuits:
+  - Temperature difference ↔ Voltage
+  - Heat transfer rate ↔ Current
+  - Thermal resistance ↔ Electrical resistance
+- Resistances add in **series**; reciprocals add in **parallel**
+- The resistance approach works for steady, 1D problems without generation
+:::
+
+::: {.callout-important}
+## Key Equations
+
+**Energy balance (First Law):**
+$$\dot{E}_{in} - \dot{E}_{out} + \dot{E}_{gen} = \frac{dE_{st}}{dt}$$
+
+**Heat flux definition:**
+$$q'' = \frac{q}{A}$$
+
+**Conduction resistance:**
+$$R_{th,cond} = \frac{L}{kA}$$
+
+**Convection resistance:**
+$$R_{th,conv} = \frac{1}{hA}$$
+
+**Heat transfer from resistance:**
+$$q = \frac{\Delta T}{R_{total}}$$
+:::
+
+## Exercises
+
+1. **Unit analysis**: Verify that the conduction resistance $R_{th} = L/(kA)$ has units of K/W by substituting the SI units for each quantity.
+
+2. **Composite wall**: A wall consists of two layers:
+   - Layer 1: brick, $k_1 = 0.7$ W/(m·K), thickness $L_1 = 10$ cm
+   - Layer 2: insulation, $k_2 = 0.04$ W/(m·K), thickness $L_2 = 5$ cm
+
+   The wall area is 15 m². Inside air is at 22°C with $h_i = 10$ W/(m²·K). Outside air is at 0°C with $h_o = 30$ W/(m²·K).
+
+   a. Draw the thermal resistance network
+   b. Calculate each resistance
+   c. Find the total heat loss through the wall
+   d. Which resistance dominates? What does this tell you about where to focus insulation efforts?
+
+3. **Window vs wall**: A room has 20 m² of wall (R-value 3.0 m²·K/W) and 4 m² of single-pane window (R-value 0.15 m²·K/W).
+
+   a. What fraction of the total heat loss goes through the window?
+   b. If you upgrade to double-pane windows (R-value 0.35 m²·K/W), by what percentage does total heat loss decrease?
+
+4. **Parallel paths**: A wall contains wooden studs (k = 0.15 W/(m·K)) that occupy 10% of the wall area, with insulation (k = 0.04 W/(m·K)) filling the remaining 90%. Both are 15 cm thick. Calculate the effective thermal resistance of this composite wall per unit area.
+
+5. **Generation term**: An electrical wire of radius 2 mm and length 1 m carries 10 A of current. The wire has electrical resistivity $\rho_e = 1.7 \times 10^{-8}$ Ω·m.
+
+   a. Calculate the total power dissipated as heat ($P = I^2 R$)
+   b. Calculate the volumetric heat generation rate $\dot{q}$ in W/m³
+   c. If the wire surface is maintained at 50°C by convection ($h = 25$ W/(m²·K)) to air at 20°C, verify that the heat generated equals the heat convected away
+
+::: {.callout-tip collapse="true"}
+## Further Viewing
+- [Heat Transfer: Crash Course Engineering #14](https://www.youtube.com/watch?v=YK7G6l_K6sA): good overview of energy balance concepts
+- [Thermal Resistance Explained](https://www.youtube.com/watch?v=M9K6h5dSfXg): visual explanation of the resistance analogy
+:::

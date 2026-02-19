@@ -1,0 +1,710 @@
+# How to Solve a Heat Transfer Problem
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Identify the mode(s) of heat transfer active in a given problem
+- List and justify simplifying assumptions for a heat transfer scenario
+- Draw a schematic with a well-defined control volume
+- Apply the energy balance to derive a governing equation
+- Check dimensional consistency of derived equations
+:::
+
+## The Real Challenge
+
+You now have the building blocks: three modes of heat transfer (Chapter 2), the energy balance (Chapter 3), and a working Python environment. The question is: when you're staring at a problem statement, how do you actually start?
+
+What follows is not a specific formula or a particular geometry. It's a systematic way of thinking that works for any problem you'll encounter in this book or in practice.
+
+I'll be honest with you: the hardest part of a heat transfer problem is usually not the math. The math, once you've set up the right equation, tends to be straightforward (or, at worst, something you hand to a computer). The hard part is reading a problem statement, recognising what physics are at play, making appropriate simplifications, and setting up the governing equation correctly.
+
+## Problem Solving is Classification
+
+Most engineering problem solving is not about flashes of genius. It's about **classification**.
+
+If I give you a problem and you can classify it into a known category, you're halfway to the solution. Every category has a set of governing equations, a standard set of assumptions, and a well-established solution procedure. Your job is to figure out which category the problem belongs to.
+
+In fluid mechanics, you classify flows: internal or external? Laminar or turbulent? Compressible or incompressible? Each classification narrows the field of applicable equations.
+
+Heat transfer works the same way. When you encounter a problem, you need to answer a series of questions:
+
+1. **Which mode(s)?** Conduction, convection, radiation, or some combination?
+2. **Steady or transient?** Are temperatures changing with time, or has the system reached a steady state?
+3. **How many dimensions?** Is the temperature variation one-dimensional, or do you need to consider 2D or 3D effects?
+4. **What are the boundary conditions?** Known temperature, known heat flux, convection at a surface, insulation?
+5. **Constant properties?** Can you treat thermal conductivity, density, etc. as constants?
+6. **Internal heat generation?** Is energy being produced inside the control volume?
+
+Each answer eliminates some equations and points you toward others. By the time you've answered all six questions, the governing equation almost writes itself.
+
+::: {.callout-important}
+## Engineering Judgment Lives in the Assumptions
+The assumptions you make are where your engineering judgment shows up. Two people can look at the same problem and make different assumptions. If the assumptions are reasonable and justified, both solutions are valid. If the assumptions are wrong, no amount of correct algebra will save you.
+
+Always state your assumptions explicitly. This is not a formality: it's how you (and others) can later diagnose whether a result is reasonable.
+:::
+
+## The Problem-Solving Framework
+
+Here is a step-by-step framework that works for essentially every heat transfer problem in this book. We'll walk through each step in detail using a worked example in the next section.
+
+1. **Read and parse the problem statement.** Look for clues about which physics are involved. Words like "insulated", "initially", "emissivity", "flowing air" all point to specific modes and conditions.
+
+2. **Categorise the problem.** Answer the six classification questions above. Which mode(s)? Steady or transient? Dimensions? Boundary conditions? Constant properties? Generation?
+
+3. **Draw a schematic with a control volume.** Always draw a picture. Label temperatures, dimensions, material properties, and energy flows. Even a rough sketch prevents mistakes.
+
+4. **State your assumptions explicitly.** Write them down as a numbered list. This is not optional.
+
+5. **Write the governing equation.** Start from the First Law (@eq-first-law from Chapter 3) every single time. Then substitute the appropriate rate expressions for each active mode.
+
+6. **Substitute rate expressions.** Replace $\dot{E}_{in}$, $\dot{E}_{out}$, and $\dot{E}_{gen}$ with the actual heat transfer expressions: Fourier's law for conduction (@eq-fourier), Newton's law for convection (@eq-newton), or the Stefan-Boltzmann law for radiation (@eq-stefan-boltzmann).
+
+7. **Check units.** Every term in your equation must have the same dimensions. This is the single most effective way to catch errors.
+
+8. **Solve.** Analytically if possible, numerically if necessary.
+
+@fig-problem-solving-flowchart shows this framework as a visual roadmap. The flow is top to bottom: each step builds on the previous one.
+
+```{python}
+#| label: fig-problem-solving-flowchart
+#| fig-cap: "The eight-step problem-solving framework. Start at the top with the problem statement and work downward. The classification step (step 2) is where most of the thinking happens."
+#| code-fold: true
+
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+import matplotlib.patheffects as pe
+
+sys.path.insert(0, '../style_experiments')
+from figure_utils import PALETTE, validate_figure
+
+plt.rcParams.update({
+    'text.usetex': True,
+    'font.family': 'serif',
+    'font.serif': ['Computer Modern Roman'],
+    'text.latex.preamble': r'\usepackage{amsmath}',
+})
+
+fig = plt.figure(figsize=(8, 10))
+ax = fig.add_axes([0.05, 0.02, 0.90, 0.96])
+ax.set_xlim(-1, 11)
+ax.set_ylim(-0.5, 19.5)
+ax.set_facecolor('white')
+ax.axis('off')
+
+steps = [
+    ('1. Read \& Parse', 'Identify clues: modes,\nconditions, geometry'),
+    ('2. Classify', 'Mode? Steady/transient?\nDimensions? BCs? Generation?'),
+    ('3. Draw Schematic', 'Control volume, labels,\nenergy flows'),
+    ('4. State Assumptions', 'Numbered list.\nThis is not optional.'),
+    ('5. Governing Equation', 'Start from the First Law\nevery single time'),
+    ('6. Substitute Rates', r"Fourier's, Newton's," + "\nor Stefan-Boltzmann"),
+    ('7. Check Units', 'Every term must have\nthe same dimensions'),
+    ('8. Solve', 'Analytically if possible,\nnumerically if necessary'),
+]
+
+# Colours: alternate between warm tones for emphasis
+step_colours = [
+    PALETTE['cold'], PALETTE['hot'], PALETTE['cool'], PALETTE['cold'],
+    PALETTE['hot'], PALETTE['cool'], PALETTE['cold'], PALETTE['hot'],
+]
+
+box_width = 8.0
+box_height = 1.6
+x_centre = 5.0
+y_top = 17.5
+y_spacing = 2.15
+
+for i, ((title, desc), colour) in enumerate(zip(steps, step_colours)):
+    y = y_top - i * y_spacing
+    x0 = x_centre - box_width / 2
+    y0 = y - box_height / 2
+
+    # Box with rounded corners
+    box = FancyBboxPatch(
+        (x0, y0), box_width, box_height,
+        boxstyle='round,pad=0.15,rounding_size=0.3',
+        facecolor=colour, edgecolor='none', alpha=0.12, zorder=1)
+    ax.add_patch(box)
+
+    # Border
+    border = FancyBboxPatch(
+        (x0, y0), box_width, box_height,
+        boxstyle='round,pad=0.15,rounding_size=0.3',
+        facecolor='none', edgecolor=colour, linewidth=2, zorder=2)
+    ax.add_patch(border)
+
+    # Step title (left-aligned, bold)
+    ax.text(x0 + 0.4, y + 0.15, title, fontsize=12, fontweight='bold',
+            color=colour, va='center', ha='left', zorder=3)
+
+    # Description (right side)
+    ax.text(x_centre + 1.2, y - 0.05, desc, fontsize=9.5,
+            color=PALETTE['text'], va='center', ha='center', zorder=3,
+            linespacing=1.4)
+
+    # Arrow to next step
+    if i < len(steps) - 1:
+        arrow_y_start = y - box_height / 2 - 0.05
+        arrow_y_end = y - y_spacing + box_height / 2 + 0.05
+        arrow = FancyArrowPatch(
+            (x_centre, arrow_y_start), (x_centre, arrow_y_end),
+            arrowstyle='-|>', mutation_scale=15, linewidth=2,
+            color=PALETTE['text'], alpha=0.4, zorder=1)
+        ax.add_patch(arrow)
+
+validate_figure(fig, strict=False)
+plt.show()
+```
+
+@tbl-ht-classification summarises these classification questions. You don't need to memorise this; the point is that every problem follows the same logical path from statement to governing equation.
+
+::: {#tbl-ht-classification}
+
+| Question | Options | What it determines |
+|:---------|:--------|:-------------------|
+| Which **mode(s)**? | Conduction, convection, radiation, or a combination | Which rate expressions to substitute into the energy balance |
+| **Steady** or **transient**? | $dE_{st}/dt = 0$ (steady) or $dE_{st}/dt \neq 0$ (transient) | Whether the governing equation is an ODE in time or a simpler algebraic/spatial equation |
+| How many **dimensions**? | 1-D, 2-D, or 3-D | Whether temperature varies in one, two, or three spatial directions |
+| **Boundary conditions**? | Known $T$, known $q''$, convection ($h$), insulation, symmetry | The constraints needed to solve the governing equation |
+| **Constant properties**? | Yes (linear problem) or no (nonlinear, needs iteration) | Whether analytical solutions exist or numerical methods are required |
+| **Internal generation**? | $\dot{E}_{gen} = 0$ or $\dot{E}_{gen} \neq 0$ | Whether there is a source term in the energy balance |
+
+: The classification questions for heat transfer problems. Each answer narrows the problem toward a specific governing equation. {.striped .hover}
+
+:::
+
+::: {.callout-tip}
+## The Messy Draft
+When solving a problem for the first time, give yourself permission to make a mess. Use all of your thinking facilities: sketch on scrap paper, try different assumptions, cross things out, start over. Professional engineers do this.
+
+The clean, neat solution you see in textbooks is always the *second* version. Nobody gets there on the first try. First, work out the answer by whatever means necessary. Then rewrite it neatly so that when you look at it seventeen months from now, you can still understand what you did.
+:::
+
+## Worked Example: Cooling of an Aluminum Sphere {#sec-sphere-example}
+
+We'll now work through a complete problem using the framework above. This example comes from a classic heat transfer scenario, and it demonstrates every step of the process.
+
+::: {.callout-note appearance="simple"}
+**Problem Statement**
+
+An aluminum sphere of diameter $D$, initially at a uniform temperature $T_i$, is placed inside a large vessel whose walls are maintained at temperature $T_{wall}$. A gas at temperature $T_\infty$ flows through the vessel past the sphere, with a known convective heat transfer coefficient $h$. The emissivity of the sphere surface is $\varepsilon$.
+
+Derive the equation governing the time evolution of the sphere temperature, $T_{sph}(t)$.
+:::
+
+### Step 1: Parse the Problem Statement
+
+Reading a problem statement is like a chess game. Every word is a clue, and the examiner (or the physical situation) has placed them there deliberately. Slow down and extract the physics from the language.
+
+::: {.column-margin}
+![Like chess, parsing a problem means reading the position on the board and figuring out what your opponent intended. Every piece the examiner places in the problem statement is there for a reason.](../images/ch04/chess.jpg)
+:::
+
+Click through the tabs below to see how each phrase in the problem statement reveals a piece of the physics:
+
+::: {.panel-tabset .nav-pills}
+
+## "aluminum sphere"
+
+> An **aluminum sphere** of diameter $D$...
+
+A specific geometry and material. We'll need properties of aluminum ($\rho$, $c$). The word "sphere" also tells us the surface area and volume formulas we'll need later.
+
+## "initially... uniform"
+
+> ...**initially** at a **uniform temperature** $T_i$...
+
+The word "initially" means this is a **transient** problem: temperature changes with time. "Uniform" tells us the sphere temperature is spatially constant (no internal gradients), which will become an important assumption.
+
+## "large vessel"
+
+> ...placed inside a **large vessel** whose walls are maintained at temperature $T_{wall}$...
+
+The vessel is much larger than the sphere. This simplifies the radiation calculation: the sphere "sees" only the vessel walls, and the view factor is approximately 1. The cold walls are a sink for radiation.
+
+## "gas flow... $h$"
+
+> A gas at temperature $T_\infty$ flows through the vessel past the sphere, with a known convective heat transfer coefficient **$h$**...
+
+Convection is active. The gas carries heat away from the sphere. The fact that $h$ is given (rather than derived) means we can proceed without convection theory for now.
+
+## "emissivity $\varepsilon$"
+
+> The **emissivity** of the sphere surface is $\varepsilon$.
+
+Emissivity never appears in a problem by accident. If the examiner gives you $\varepsilon$, they expect radiation in your analysis.
+
+## "Derive the equation"
+
+> **Derive the equation** governing the time evolution of the sphere temperature, $T_{sph}(t)$.
+
+They want the ODE, not a numerical answer. We need to set up the governing equation and simplify, but not solve.
+
+:::
+
+From this parsing, we know: transient, convection + radiation (two modes), spatially uniform sphere temperature, and we need the time derivative $dT_{sph}/dt$.
+
+### Step 2: Draw a Schematic
+
+@fig-sphere-vessel shows the physical setup with the control volume drawn around the sphere.
+
+```{python}
+#| label: fig-sphere-vessel
+#| fig-cap: "An aluminum sphere cooling inside a vessel. The control volume (dashed) encloses the sphere. Energy leaves by convection to the surrounding gas and by radiation to the cold vessel walls. No energy enters the sphere."
+#| code-fold: true
+
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, Circle, FancyArrowPatch
+import matplotlib.patheffects as pe
+
+sys.path.insert(0, '../style_experiments')
+from figure_utils import PALETTE, THERMAL_CMAP, validate_figure
+
+plt.rcParams.update({
+    'text.usetex': True,
+    'font.family': 'serif',
+    'font.serif': ['Computer Modern Roman'],
+    'text.latex.preamble': r'\usepackage{amsmath}',
+})
+
+# ---- Figure layout ----
+fig = plt.figure(figsize=(10, 8))
+fig.patch.set_facecolor('white')
+ax = fig.add_axes([0.05, 0.05, 0.90, 0.90])
+ax.set_xlim(-4.8, 4.8)
+ax.set_ylim(-4.8, 4.8)
+ax.set_aspect('equal')
+ax.set_facecolor('white')
+ax.axis('off')
+
+# ========== Vessel walls (outer rectangle) ==========
+wall_hw = 4.0  # half-width
+wall_color = PALETTE['cold']
+# Draw thick cold walls
+for offset in [0.0, 0.08, 0.16]:
+    alpha = 0.25 - offset * 0.8
+    rect_x = [-wall_hw - offset, wall_hw + offset, wall_hw + offset,
+              -wall_hw - offset, -wall_hw - offset]
+    rect_y = [-wall_hw - offset, -wall_hw - offset, wall_hw + offset,
+              wall_hw + offset, -wall_hw - offset]
+    ax.plot(rect_x, rect_y, color=wall_color, linewidth=3.5 - offset*8,
+            alpha=max(alpha, 0.1), zorder=2)
+
+# Cold glow behind walls
+for r, alpha in [(0.5, 0.06), (0.3, 0.10)]:
+    for corner_x, corner_y in [(-wall_hw, -wall_hw), (wall_hw, -wall_hw),
+                                (wall_hw, wall_hw), (-wall_hw, wall_hw)]:
+        glow = Circle((corner_x, corner_y), r, facecolor=PALETTE['glow_cold'],
+                      edgecolor='none', alpha=alpha, zorder=0)
+        ax.add_patch(glow)
+
+# Wall label (positioned inside vessel, text extends leftward)
+ax.text(wall_hw - 0.3, 0, r'$T_{wall}$', fontsize=14, ha='right', va='center',
+        color='white', fontweight='bold',
+        bbox=dict(boxstyle='round,pad=0.3', facecolor=PALETTE['cold'],
+                 edgecolor='none'), zorder=10)
+ax.text(wall_hw - 0.3, -0.7, r'\textit{vessel walls}', fontsize=11, ha='right',
+        color=PALETTE['cold'])
+
+# ========== Gas flow lines ==========
+for y_offset in [-2.5, -1.0, 0.5, 2.0]:
+    x_flow = np.linspace(-3.5, -1.8, 40)
+    y_flow = y_offset + 0.12 * np.sin(x_flow * 3.5)
+    ax.plot(x_flow, y_flow, color=PALETTE['cool'], alpha=0.35,
+            linewidth=1.5, zorder=1)
+    # Arrowhead
+    ax.annotate('', xy=(-1.8, y_flow[-1]), xytext=(-2.1, y_flow[-3]),
+                arrowprops=dict(arrowstyle='->', color=PALETTE['cool'],
+                               lw=1.2, alpha=0.5))
+
+# Gas temperature label (positioned well inside the vessel, away from wall)
+ax.text(-2.8, 3.5, r'$T_\infty$', fontsize=14, ha='center', va='center',
+        color='white', fontweight='bold',
+        bbox=dict(boxstyle='round,pad=0.3', facecolor=PALETTE['cool'],
+                 edgecolor='none'), zorder=10)
+ax.text(-2.8, 2.9, r'\textit{gas flow}', fontsize=11, ha='center',
+        color=PALETTE['cool'])
+
+# ========== Sphere ==========
+sphere_r = 1.4
+theta = np.linspace(0, 2*np.pi, 100)
+
+# Thermal glow behind sphere
+for r, alpha in [(2.2, 0.06), (1.9, 0.10), (1.65, 0.14)]:
+    glow = Circle((0, 0), r, facecolor=PALETTE['glow_hot'],
+                  edgecolor='none', alpha=alpha, zorder=2)
+    ax.add_patch(glow)
+
+# Sphere body with gradient fill (radial-like effect using concentric circles)
+n_rings = 30
+for i in range(n_rings, 0, -1):
+    frac = i / n_rings  # 1 = outer (cooler), 0 = center (hottest)
+    r_ring = sphere_r * frac
+    # Map: center is hottest (frac=1 in cmap), edge is slightly less hot
+    cmap_val = 0.7 + 0.3 * (1 - frac)
+    ring = Circle((0, 0), r_ring, facecolor=THERMAL_CMAP(cmap_val),
+                  edgecolor='none', zorder=3)
+    ax.add_patch(ring)
+
+# Sphere outline
+sphere_outline = Circle((0, 0), sphere_r, facecolor='none',
+                        edgecolor=PALETTE['text'], linewidth=2.5, zorder=4)
+ax.add_patch(sphere_outline)
+
+# Shadow behind sphere
+shadow = Circle((0.06, -0.06), sphere_r, facecolor='#1D355708',
+                edgecolor='none', zorder=2)
+ax.add_patch(shadow)
+
+# Energy lines near sphere surface (hot)
+for angle_deg in [30, 75, 120, 160, 210, 260, 310, 350]:
+    angle = np.radians(angle_deg)
+    x_start = (sphere_r + 0.05) * np.cos(angle)
+    y_start = (sphere_r + 0.05) * np.sin(angle)
+    wave_t = np.linspace(0, 0.25, 25)
+    x_wave = x_start + wave_t * np.cos(angle)
+    y_wave = y_start + wave_t * np.sin(angle) + 0.04 * np.sin(wave_t * 40) * (1 - wave_t/0.25)
+    ax.plot(x_wave, y_wave, color=PALETTE['hot'], alpha=0.3,
+            linewidth=1.5, solid_capstyle='round', zorder=3)
+
+# Sphere temperature label
+ax.text(0, 0, r'$T_{sph}(t)$', fontsize=15, ha='center', va='center',
+        color='white', fontweight='bold',
+        bbox=dict(boxstyle='round,pad=0.35', facecolor=PALETTE['hot'],
+                 edgecolor='none', alpha=0.9), zorder=8)
+
+# ========== Control volume (dashed circle) ==========
+cv_r = sphere_r + 0.3
+cv_theta = np.linspace(0, 2*np.pi, 100)
+ax.plot(cv_r * np.cos(cv_theta), cv_r * np.sin(cv_theta),
+        color=PALETTE['text'], linewidth=1.5, linestyle='--',
+        alpha=0.6, zorder=5)
+ax.text(cv_r * np.cos(np.radians(45)) + 0.3,
+        cv_r * np.sin(np.radians(45)) + 0.3,
+        r'\textit{control volume}', fontsize=11,
+        color=PALETTE['text'], alpha=0.7, ha='left')
+
+# ========== Energy flow arrows ==========
+# Convection arrow (leaving sphere toward gas side, leftward)
+conv_arrow = FancyArrowPatch(
+    (-sphere_r - 0.4, 1.5), (-3.0, 2.8),
+    arrowstyle='-|>', mutation_scale=16, linewidth=2.5,
+    color=PALETTE['warm'],
+    connectionstyle='arc3,rad=-0.15',
+    path_effects=[
+        pe.Stroke(linewidth=5, foreground=PALETTE['glow_hot'], alpha=0.3),
+        pe.Normal()
+    ], zorder=7)
+ax.add_patch(conv_arrow)
+ax.text(-2.8, 1.5, r'$\dot{E}_{out,conv}$', fontsize=12,
+        color=PALETTE['warm'], fontweight='bold', ha='center')
+
+# Radiation arrow (leaving sphere toward walls, rightward)
+rad_arrow = FancyArrowPatch(
+    (sphere_r + 0.4, -1.2), (3.2, -2.8),
+    arrowstyle='-|>', mutation_scale=16, linewidth=2.5,
+    color=PALETTE['warm'],
+    connectionstyle='arc3,rad=0.15',
+    path_effects=[
+        pe.Stroke(linewidth=5, foreground=PALETTE['glow_hot'], alpha=0.3),
+        pe.Normal()
+    ], zorder=7)
+ax.add_patch(rad_arrow)
+ax.text(3.0, -1.5, r'$\dot{E}_{out,rad}$', fontsize=12,
+        color=PALETTE['warm'], fontweight='bold', ha='center')
+
+# Stored energy label inside sphere region
+ax.text(0, -2.5, r'$\dot{E}_{st} = \rho V c \dfrac{dT_{sph}}{dt}$', fontsize=11,
+        ha='center', va='center', color=PALETTE['text'],
+        bbox=dict(boxstyle='round,pad=0.2,rounding_size=0.1',
+                 facecolor='white', edgecolor=PALETTE['text'],
+                 linewidth=1.2, alpha=0.9), zorder=8)
+
+# Diameter annotation
+ax.annotate('', xy=(sphere_r, -3.8), xytext=(-sphere_r, -3.8),
+            arrowprops=dict(arrowstyle='<->', lw=1.3,
+                           color=PALETTE['text'], mutation_scale=8))
+ax.text(0, -3.5, r'$D$', fontsize=13, ha='center', va='bottom',
+        color=PALETTE['text'])
+
+validate_figure(fig, strict=False)
+plt.show()
+```
+
+### Step 3: State Assumptions
+
+Engineering judgment enters through the assumptions. We make the following, and each one matters:
+
+1. **No energy enters the sphere** ($\dot{E}_{in} = 0$). The sphere is hotter than both the gas and the walls, so heat flows outward.
+
+2. **Uniform sphere temperature** (no internal temperature gradients). This is the **lumped capacitance** assumption. It requires the Biot number $\text{Bi} = hL_c/k$ to be small ($\text{Bi} \ll 1$), where $L_c$ is a characteristic length. Physically, Bi compares the conduction resistance inside the body to the convection resistance at its surface. When Bi is small, the interior equilibrates much faster than heat is lost at the surface, so the temperature stays nearly uniform. For aluminum ($k \approx 240$ W/(m·K)) with typical convection coefficients, this is almost always satisfied. We will treat the Biot number properly in the conduction chapters (Part III).
+
+3. **No internal heat generation** ($\dot{E}_{gen} = 0$). There is no nuclear reaction, chemical reaction, or electrical heating inside the sphere.
+
+4. **Large vessel** (the walls are much larger than the sphere). This simplifies the radiation calculation: the sphere "sees" only the vessel walls, and the view factor is approximately 1.
+
+5. **Constant material properties** ($\rho$, $c$, $k$ for aluminum do not change with temperature over the range considered).
+
+6. **Gray, diffuse surface** (the emissivity $\varepsilon$ is independent of wavelength and direction). A standard simplification for engineering radiation calculations.
+
+### Step 4: Apply the Energy Balance
+
+Start from the First Law (@eq-first-law):
+
+$$
+\dot{E}_{in} - \dot{E}_{out} + \dot{E}_{gen} = \frac{dE_{st}}{dt}
+$$
+
+These terms were defined in Chapter 3: $\dot{E}_{in}$ and $\dot{E}_{out}$ are the rates of energy entering and leaving the control volume, $\dot{E}_{gen}$ is the rate of internal generation, and $E_{st}$ is the stored energy. Applying our assumptions ($\dot{E}_{in} = 0$, $\dot{E}_{gen} = 0$):
+
+$$
+-\dot{E}_{out} = \frac{dE_{st}}{dt}
+$$ {#eq-sphere-balance}
+
+The stored energy in the sphere is $E_{st} = \rho V c \, T_{sph}$, where $\rho$ is density, $V$ is volume, and $c$ is specific heat. Taking the time derivative:
+
+$$
+\frac{dE_{st}}{dt} = \rho V c \frac{dT_{sph}}{dt}
+$$
+
+The energy leaving the sphere has two components:
+
+**Convection** (Newton's law of cooling, @eq-newton):
+
+$$
+\dot{E}_{out,conv} = h A_s (T_{sph} - T_\infty)
+$$
+
+**Radiation** (Stefan-Boltzmann law, @eq-stefan-boltzmann, net exchange with the walls):
+
+$$
+\dot{E}_{out,rad} = \varepsilon \sigma A_s (T_{sph}^4 - T_{wall}^4)
+$$
+
+Substituting into @eq-sphere-balance:
+
+$$
+-h A_s (T_{sph} - T_\infty) - \varepsilon \sigma A_s (T_{sph}^4 - T_{wall}^4) = \rho V c \frac{dT_{sph}}{dt}
+$$ {#eq-sphere-full}
+
+where:
+
+| Symbol | Name | SI Units |
+|--------|------|----------|
+| $h$ | Convective heat transfer coefficient | W/(m²·K) |
+| $A_s$ | Sphere surface area | m² |
+| $T_{sph}$ | Sphere temperature | K |
+| $T_\infty$ | Bulk fluid temperature (far from surface) | K |
+| $\varepsilon$ | Emissivity | — |
+| $\sigma$ | Stefan-Boltzmann constant | W/(m²·K⁴) |
+| $T_{wall}$ | Vessel wall temperature | K |
+| $\rho$ | Density of aluminum | kg/m³ |
+| $V$ | Sphere volume (not velocity) | m³ |
+| $c$ | Specific heat of aluminum | J/(kg·K) |
+
+### Step 5: Check Units
+
+Every term in @eq-sphere-full must have the same units. Consider the left-hand side:
+
+$$
+\left[\frac{\text{W}}{\text{m}^2 \cdot \text{K}}\right] \left[\text{m}^2\right] \left[\text{K}\right] = \left[\text{W}\right] \quad \checkmark
+$$
+
+$$
+\left[-\right] \left[\frac{\text{W}}{\text{m}^2 \cdot \text{K}^4}\right] \left[\text{m}^2\right] \left[\text{K}^4\right] = \left[\text{W}\right] \quad \checkmark
+$$
+
+And the right-hand side:
+
+$$
+\left[\frac{\text{kg}}{\text{m}^3}\right] \left[\text{m}^3\right] \left[\frac{\text{J}}{\text{kg} \cdot \text{K}}\right] \left[\frac{\text{K}}{\text{s}}\right] = \left[\frac{\text{J}}{\text{s}}\right] = \left[\text{W}\right] \quad \checkmark
+$$
+
+All terms are in watts. The equation is dimensionally consistent.
+
+::: {.callout-tip}
+## The Most Effective Error Check
+Dimensional analysis catches more algebraic mistakes than any other technique. If a term has units of W/m² when everything else is in W, you have an error somewhere (probably a missing area $A$ or an extra length $L$). Make this check a habit on every equation you derive.
+:::
+
+### Step 6: Simplify
+
+For a sphere, the surface area and volume are:
+
+$$
+A_s = \pi D^2, \qquad V = \frac{\pi D^3}{6}
+$$
+
+The ratio that appears when we divide through by $\rho V c$ is:
+
+$$
+\frac{A_s}{V} = \frac{\pi D^2}{\pi D^3 / 6} = \frac{6}{D}
+$$
+
+Rearranging @eq-sphere-full and dividing both sides by $\rho V c$:
+
+$$
+\frac{dT_{sph}}{dt} = -\frac{6}{\rho D c} \left[ h(T_{sph} - T_\infty) + \varepsilon \sigma (T_{sph}^4 - T_{wall}^4) \right]
+$$ {#eq-sphere-ode}
+
+with the initial condition $T_{sph}(0) = T_i$.
+
+@eq-sphere-ode governs the sphere temperature. The negative sign on the right-hand side ensures that when $T_{sph}$ is greater than $T_\infty$ and $T_{wall}$, the derivative is negative (the sphere cools down). All symbols are as defined in the table after @eq-sphere-full, with the addition of the sphere diameter $D$ (m).
+
+::: {.callout-important}
+## Two Things We Can't Do Yet
+@eq-sphere-ode is correct, but we can't solve it numerically without knowing $h$, and we can't solve it analytically because the $T_{sph}^4$ term makes it **nonlinear**. Finding $h$ requires convection theory (Part II of this book). Handling nonlinear ODEs requires numerical methods. Both of these are coming.
+
+What we *can* do is recognise that we have derived the governing equation from first principles, using only the energy balance and the rate expressions from Chapter 2. That is the core skill this chapter teaches.
+:::
+
+### Preview: Solving the ODE Numerically
+
+We said we can't solve @eq-sphere-ode without knowing $h$, and that's true in general. But if we pick a reasonable value (say, $h = 25$ W/(m²·K) for forced convection over a small sphere), we can use Python to integrate the ODE and see what the cooling curve looks like. Run the code below to plot the result for an aluminum sphere with the parameters from Exercise 5.
+
+```{pyodide-python}
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+
+# ---- Parameters ----
+rho = 2700      # density, kg/m³
+c = 900         # specific heat, J/(kg·K)
+D = 0.1         # diameter, m
+h = 25          # convective coefficient, W/(m²·K)
+T_inf = 300     # gas temperature, K
+T_wall = 300    # wall temperature, K
+eps = 0.3       # emissivity
+sigma = 5.67e-8 # Stefan-Boltzmann constant, W/(m²·K⁴)
+T_i = 500       # initial temperature, K
+
+def dTdt(t, T, include_radiation=True):
+    """Right-hand side of the sphere cooling ODE."""
+    q_conv = h * (T[0] - T_inf)
+    q_rad = eps * sigma * (T[0]**4 - T_wall**4) if include_radiation else 0.0
+    return [-(6 / (rho * D * c)) * (q_conv + q_rad)]
+
+# ---- Solve with and without radiation ----
+t_span = (0, 3600)
+t_eval = np.linspace(0, 3600, 500)
+
+sol_both = solve_ivp(dTdt, t_span, [T_i], t_eval=t_eval,
+                     args=(True,), rtol=1e-8)
+sol_conv = solve_ivp(dTdt, t_span, [T_i], t_eval=t_eval,
+                     args=(False,), rtol=1e-8)
+
+# ---- Plot ----
+# Pyodide cannot import figure_utils; define palette subset inline
+PALETTE = {
+    'hot': '#E63946', 'warm': '#F4A261', 'cool': '#2A9D8F',
+    'cold': '#264653', 'text': '#1D3557',
+}
+
+# Simplified for pyodide; production figures use fig.add_axes()
+fig, ax = plt.subplots(figsize=(8, 4.5))
+ax.plot(sol_both.t / 60, sol_both.y[0], color=PALETTE['hot'],
+        linewidth=2, label='Convection + radiation')
+ax.plot(sol_conv.t / 60, sol_conv.y[0], color=PALETTE['cool'],
+        linewidth=2, linestyle='--', label='Convection only')
+ax.axhline(T_inf, color=PALETTE['text'], linewidth=0.8,
+           linestyle=':', alpha=0.5)
+ax.set_xlabel('Time (minutes)', fontsize=12, color=PALETTE['text'])
+ax.set_ylabel(r'$T_{sph}$ (K)', fontsize=12, color=PALETTE['text'])
+ax.set_xlim(0, 60)
+ax.set_ylim(290, 510)
+ax.legend(fontsize=11, frameon=False)
+ax.tick_params(colors=PALETTE['text'])
+for spine in ax.spines.values():
+    spine.set_color(PALETTE['text'])
+    spine.set_linewidth(0.8)
+plt.tight_layout()
+plt.show()
+```
+
+The gap between the two curves tells us how much radiation matters. At 500 K the $T^4$ term is significant, but as the sphere approaches 300 K the radiation contribution shrinks and both curves converge. Try modifying the parameters above (change $D$, $h$, or $\varepsilon$) and re-running the cell to build intuition for how each one affects the cooling rate.
+
+## What Happens Next?
+
+We cannot yet *predict* $h$ from first principles: we assumed a value above to preview the solution. The rest of this book fills in that missing piece. Part II develops the convection theory needed to find $h$ for various geometries, including flow over spheres. Part III tackles conduction problems where the temperature varies inside the solid (i.e., when the lumped capacitance assumption fails). Part IV covers radiation exchange in detail.
+
+The framework from this chapter applies to every one of those problems. The physics get richer, but the approach stays the same: read, classify, sketch, assume, balance, substitute, check, solve.
+
+::: {.callout-tip}
+## The Framework in Eight Words
+**Read, classify, sketch, assume, balance, substitute, check, solve.** Come back to this list whenever you're stuck on a problem.
+:::
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+
+- **Problem solving in heat transfer is classification**: identify the mode(s), determine steady vs transient, count dimensions, specify boundary conditions
+- **Always start from the First Law**: $\dot{E}_{in} - \dot{E}_{out} + \dot{E}_{gen} = dE_{st}/dt$, then substitute the appropriate rate expressions
+- **State assumptions explicitly**: they encode your engineering judgment and determine which equation you end up with
+- **Draw a schematic with a control volume**: even a rough sketch prevents errors
+- **Check units on every term**: dimensional analysis catches more mistakes than any other technique
+- The framework (read, classify, sketch, assume, balance, substitute, check, solve) applies to every problem in this book
+:::
+
+::: {.callout-important}
+## Key Equations
+
+**Energy balance (First Law, from Chapter 3):**
+$$\dot{E}_{in} - \dot{E}_{out} + \dot{E}_{gen} = \frac{dE_{st}}{dt}$$
+
+**Sphere cooling ODE (convection + radiation):**
+$$\frac{dT_{sph}}{dt} = -\frac{6}{\rho D c} \left[ h(T_{sph} - T_\infty) + \varepsilon \sigma (T_{sph}^4 - T_{wall}^4) \right]$$
+
+**Surface-area-to-volume ratio for a sphere:**
+$$\frac{A_s}{V} = \frac{6}{D}$$
+:::
+
+## Exercises
+
+1. **Identify the modes.** For each scenario below, identify the active mode(s) of heat transfer and state whether the problem is steady or transient:
+
+   a. A copper pipe carrying hot water through a cold room, long after startup
+   b. A computer chip generating heat, cooled by a fan, immediately after the computer is turned on
+   c. A satellite in orbit, absorbing sunlight on one side and radiating to space on the other
+   d. Warm soup in a thermos flask after several hours
+
+2. **State the assumptions.** A steel rod, initially at room temperature, is placed in a furnace with walls at 1200 K. The furnace contains stagnant nitrogen gas at 800 K. List the assumptions you would make to model the heating of the rod, and justify each one. Which assumptions would you reconsider if the rod were made of polymer instead of steel?
+
+3. **Simplify the sphere problem.** Starting from @eq-sphere-ode, derive the simplified ODE for the case where radiation is negligible (i.e., $\varepsilon \approx 0$). Show that the resulting equation is linear and has an exponential solution of the form $T_{sph}(t) = T_\infty + (T_i - T_\infty) e^{-t/\tau}$. Find the **time constant** $\tau$ in terms of $\rho$, $D$, $c$, and $h$.
+
+4. **Add internal heat generation.** Suppose the sphere contains a small radioactive source that generates heat at a uniform volumetric rate $\dot{q}$ (in W/m³). Modify @eq-sphere-ode to account for this generation term. What is the steady-state temperature of the sphere if radiation is negligible?
+
+5. **Numerical solution.** Using Python's `scipy.integrate.solve_ivp`, solve @eq-sphere-ode for an aluminum sphere ($\rho = 2700$ kg/m³, $c = 900$ J/(kg·K)) with $D = 0.1$ m, $T_i = 500$ K, $T_\infty = T_{wall} = 300$ K, $h = 25$ W/(m²·K), and $\varepsilon = 0.3$. Plot $T_{sph}(t)$ for $0 \le t \le 3600$ s (one hour). How long does it take for the sphere to reach 310 K? Try removing the radiation term ($\varepsilon = 0$) and compare: how much does radiation accelerate the cooling?
+
+   **Hint**: Define the right-hand side of @eq-sphere-ode as a Python function, then pass it to `solve_ivp`. The basic structure is:
+
+   ```python
+   from scipy.integrate import solve_ivp
+
+   def dTdt(t, T, rho, D, c, h, T_inf, eps, sigma, T_wall):
+       return -(6 / (rho * D * c)) * (
+           h * (T[0] - T_inf) + eps * sigma * (T[0]**4 - T_wall**4)
+       )
+   ```
+
+6. **Unit analysis practice.** A colleague proposes the following equation for the cooling time of a sphere:
+
+   $$
+   t_{cool} = \frac{\rho C D}{h} \ln\left(\frac{T_i - T_\infty}{T_f - T_\infty}\right)
+   $$
+
+   where $T_f$ is the final temperature. Check whether this equation is dimensionally consistent. If not, identify the error and propose a correction. (You should recognise this as related to Exercise 3.)
+
+::: {.callout-tip collapse="true"}
+## Further Viewing
+- [Solving Engineering Problems: A Systematic Approach](https://www.youtube.com/watch?v=PJHd43Cz1Eo) (MIT OpenCourseWare on structured problem solving in engineering)
+- [Lumped Capacitance Method](https://www.youtube.com/watch?v=K3RnKCbEQaA) (derivation of the lumped capacitance model used in the worked example)
+:::

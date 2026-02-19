@@ -1,0 +1,226 @@
+---
+title: "How to Use This Book"
+---
+
+::: {.callout-note}
+## What You'll Learn Here
+After reading this section, you will be able to:
+
+- Run Python code examples in the browser or locally
+- Understand the notation conventions used throughout the book
+- Navigate the chapter structure
+:::
+
+This is not a traditional textbook. It's designed to be read *with your hands on a keyboard*, running and modifying code as you go.
+
+## Why Python?
+
+Heat transfer involves equations, correlations, and property lookups that are tedious by hand but trivial with code. A single function call can evaluate the Dittus-Boelter correlation across a range of Reynolds numbers. A few lines of code can solve a transient conduction problem that would take pages of analytical work.
+
+But computation isn't just about convenience. It's about **building intuition**.
+
+When you can ask "what if I doubled the flow rate?" and see the answer in seconds, you start to develop a feel for how these systems behave. When you can plot temperature profiles and watch them evolve, abstract equations become concrete. This kind of exploration builds understanding that static examples cannot.
+
+Every chapter contains Python code. Some examples are **interactive**: you can edit the code directly in your browser and click "Run" to see the results. Others produce plots and visualisations. All of them are meant to be modified, broken, and fixed.
+
+::: {.callout-tip}
+## The Learning Loop
+1. Read the theory
+2. Run the code
+3. Change something
+4. Predict what will happen
+5. Check your prediction
+6. Repeat
+
+This loop (predict, test, refine) is how engineers develop intuition.
+:::
+
+## Running the Code
+
+You have several options for running Python code in this book:
+
+### Option 1: Just Use Your Browser (Easiest)
+
+Many code examples in this book are **interactive**. They run directly in your browser using [Pyodide](https://pyodide.org/), a Python interpreter compiled to WebAssembly. No installation required.
+
+Look for the "Run Code" button beneath code blocks. You can edit the code, change parameters, and re-run to see different results.
+
+::: {.callout-note}
+## Browser-Based Limitations
+Interactive browser code works well for calculations and simple outputs. For complex matplotlib plots or computationally intensive simulations, you'll want a local Python installation.
+:::
+
+### Option 2: Anaconda (Recommended for Beginners)
+
+If you want to run code locally:
+
+1. Download [Anaconda](https://www.anaconda.com/download)
+2. Install it (accept the defaults)
+3. Open "Jupyter Notebook" from the Anaconda Navigator
+
+Anaconda includes Python plus NumPy, SciPy, Matplotlib, and hundreds of other packages pre-installed.
+
+### Option 3: pip (If You Already Have Python)
+
+If you have Python 3.8+ installed:
+
+```bash
+pip install numpy scipy matplotlib
+```
+
+### Option 4: Google Colab (Cloud-Based)
+
+[Google Colab](https://colab.research.google.com/) provides free Jupyter notebooks in the cloud. Copy code blocks into a Colab notebook to run them. This requires a Google account but no local installation.
+
+## Testing Your Setup
+
+If you're running Python locally, your setup should produce this plot:
+
+```{python}
+#| label: fig-setup-cooling
+#| fig-cap: "Newton's law of cooling: a hot object cools rapidly at first, then slows as it approaches ambient temperature. The time constant $\\tau$ controls how quickly equilibrium is reached."
+#| code-fold: true
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patheffects as pe
+
+sys.path.insert(0, 'style_experiments')
+from figure_utils import PALETTE, THERMAL_CMAP, validate_figure
+
+plt.rcParams.update({
+    'text.usetex': True,
+    'font.family': 'serif',
+    'font.serif': ['Computer Modern Roman'],
+    'text.latex.preamble': r'\usepackage{amsmath}',
+})
+
+# Exponential cooling: Newton's law of cooling
+t = np.linspace(0, 100, 200)  # time in seconds
+T_initial = 90   # initial temperature, °C
+T_ambient = 20   # ambient temperature, °C
+tau = 30         # time constant, seconds
+
+T = T_ambient + (T_initial - T_ambient) * np.exp(-t / tau)
+
+fig = plt.figure(figsize=(8, 4))
+ax = fig.add_axes([0.12, 0.15, 0.82, 0.78])
+ax.set_facecolor(PALETTE['light_bg'])
+
+# Gradient fill under curve
+for i in range(len(t) - 1):
+    frac = (T[i] - T_ambient) / (T_initial - T_ambient)
+    color = THERMAL_CMAP(frac)
+    ax.fill_between(t[i:i+2], T_ambient, T[i:i+2], color=color, alpha=0.25)
+
+# Main curve with glow
+ax.plot(t, T, color=PALETTE['hot'], linewidth=2.5,
+        path_effects=[pe.Stroke(linewidth=4.5, foreground=PALETTE['glow_hot'], alpha=0.5),
+                      pe.Normal()], zorder=5)
+
+# Ambient line
+ax.axhline(y=T_ambient, color=PALETTE['cold'], linestyle='--', linewidth=1.5, zorder=3)
+ax.text(97, T_ambient + 7, r'$T_\mathrm{ambient}$', fontsize=11, ha='right', va='bottom',
+        color=PALETTE['cold'])
+
+# Direct label on curve
+ax.text(45, 55, r'$T(t) = T_\infty + (T_i - T_\infty)\, e^{-t/\tau}$',
+        fontsize=11, color=PALETTE['text'],
+        bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
+                  edgecolor=PALETTE['text'], linewidth=1, alpha=0.9))
+
+# Endpoint markers
+ax.scatter([0], [T_initial], s=80, color=PALETTE['hot'], zorder=10,
+           edgecolors='white', linewidths=2)
+
+# Axis styling
+ax.set_xlabel(r'Time, $t$ (s)', fontsize=11, color=PALETTE['text'])
+ax.set_ylabel(r'Temperature, $T$ ($^\circ$C)', fontsize=11, color=PALETTE['text'])
+ax.set_xlim(-8, 105)
+ax.set_ylim(5, 98)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_color(PALETTE['text'])
+ax.spines['bottom'].set_color(PALETTE['text'])
+ax.spines['left'].set_linewidth(1.5)
+ax.spines['bottom'].set_linewidth(1.5)
+ax.tick_params(colors=PALETTE['text'], width=1.5, labelsize=10)
+ax.yaxis.grid(True, linestyle='-', alpha=0.5, color='white', linewidth=2)
+ax.set_axisbelow(True)
+
+validate_figure(fig)
+plt.show()
+```
+
+If you see an exponential decay curve approaching the ambient temperature, your environment is working.
+
+::: {.callout-note}
+## What This Plot Shows
+This is **Newton's law of cooling** in action: the rate of heat loss is proportional to the temperature difference between the object and its surroundings. The object cools quickly at first (large temperature difference) and more slowly as it approaches ambient temperature. The **time constant** $\tau$ determines how fast this happens. We'll derive this equation properly in the chapter on transient conduction.
+:::
+
+## How to Read This Book
+
+Each chapter follows a consistent structure:
+
+| Section | Purpose |
+|---------|---------|
+| **Learning Objectives** | What you'll be able to do after the chapter |
+| **Conceptual Introduction** | Physical intuition, real-world examples, motivation |
+| **Theory** | Governing equations with derivations and symbol tables |
+| **Python Exploration** | Interactive code to build understanding |
+| **Worked Examples** | Step-by-step problem solving |
+| **Summary** | Key takeaways and equations in boxes |
+| **Exercises** | Conceptual, quantitative, and computational problems |
+| **Further Viewing** | Optional video resources (also linked inline) |
+
+**Do not skip the code sections.** The act of running code, tweaking parameters to see what happens, cements understanding in a way that passive reading cannot.
+
+## Conventions
+
+### Units
+
+We use **SI units** throughout:
+
+| Quantity | Symbol | SI Unit |
+|----------|--------|---------|
+| Temperature | $T$ | K (Kelvin) |
+| Temperature difference | $\Delta T$ | K or °C (equivalent for differences) |
+| Heat transfer rate | $q$ | W (watts) |
+| Heat flux | $q''$ | W/m² |
+| Thermal conductivity | $k$ | W/(m·K) |
+| Convective coefficient | $h$ | W/(m²·K) |
+
+Temperatures are in **Kelvin** unless otherwise noted. For temperature *differences*, Kelvin and Celsius are interchangeable (a 10 K difference equals a 10°C difference). For absolute temperatures, particularly in radiation calculations involving $T^4$, you must use Kelvin.
+
+::: {.callout-warning}
+## Unit Errors
+Many errors in heat transfer come from unit confusion, not conceptual misunderstanding. Every chapter includes dimensional analysis examples. Develop the habit of checking units at every step.
+:::
+
+### Notation
+
+| Symbol | Name | SI Units |
+|--------|------|----------|
+| $q$ | Heat transfer rate | W |
+| $q'$ | Heat transfer per unit length | W/m |
+| $q''$ | Heat flux | W/m² |
+| $\dot{q}$ | Volumetric heat generation | W/m³ |
+
+The prime notation follows a pattern: each prime adds a length dimension to the denominator.
+
+### Equations
+
+Key equations appear in boxes at the end of each chapter. When an equation is first introduced, it includes a symbol table defining every variable with units.
+
+::: {.callout-tip}
+## Key Takeaways
+- This book uses **SI units** throughout, with temperatures in Kelvin unless noted
+- The prime notation ($q$, $q'$, $q''$) adds a length dimension to the denominator at each level
+- Every chapter contains interactive Python code: modify it, break it, and learn from it
+- Read with your hands on a keyboard
+:::
+
+---
+
+The book starts with the fundamental question: [What is heat transfer?](part-1-introduction/01-what-is-heat-transfer.qmd)

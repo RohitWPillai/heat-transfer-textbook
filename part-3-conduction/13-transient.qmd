@@ -1,0 +1,147 @@
+# Transient Conduction
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Determine when lumped capacitance is valid
+- Use analytical solutions for simple geometries
+- Implement numerical methods for transient problems
+:::
+
+## Introduction
+
+Real heat transfer problems often involve time-varying temperatures. How long does it take for an object to cool? How does temperature vary spatially during heating?
+
+<!-- TODO: Add content from Lecture 8 transcripts -->
+
+## Lumped Capacitance Method
+
+If internal temperature gradients are negligible:
+
+$$\frac{T - T_\infty}{T_i - T_\infty} = \exp\left(-\frac{t}{\tau}\right)$$
+
+where $\tau = \rho V c_p / (hA_s)$ is the time constant.
+
+**Validity criterion**: Biot number < 0.1
+
+$$\text{Bi} = \frac{hL_c}{k} < 0.1$$
+
+where $L_c = V/A_s$.
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+def biot_number(h, Lc, k):
+    """Calculate Biot number."""
+    return h * Lc / k
+
+def lumped_capacitance(t, Ti, Tinf, tau):
+    """Temperature using lumped capacitance."""
+    return Tinf + (Ti - Tinf) * np.exp(-t / tau)
+
+# Example: Cooling a steel ball
+D = 0.02        # Diameter (m)
+rho = 7800      # Density (kg/m³)
+cp = 500        # Specific heat (J/kg·K)
+k = 50          # Thermal conductivity (W/m·K)
+h = 100         # Convection coefficient (W/m²·K)
+
+V = (4/3) * np.pi * (D/2)**3
+As = 4 * np.pi * (D/2)**2
+Lc = V / As
+
+Bi = biot_number(h, Lc, k)
+print(f"Biot number: {Bi:.3f}")
+print(f"Lumped capacitance {'valid' if Bi < 0.1 else 'NOT valid'}")
+
+tau = rho * V * cp / (h * As)
+print(f"Time constant: {tau:.1f} s")
+```
+
+## Analytical Solutions
+
+When Bi > 0.1, we need to account for internal gradients.
+
+### Plane Wall
+
+$$\frac{T - T_\infty}{T_i - T_\infty} = \sum_{n=1}^{\infty} C_n \exp(-\zeta_n^2 \text{Fo}) \cos(\zeta_n x/L)$$
+
+where Fo = αt/L² is the Fourier number.
+
+## Numerical Methods
+
+For complex problems, we discretise in space and time.
+
+### Explicit Method
+
+$$T_i^{n+1} = T_i^n + \text{Fo}(T_{i+1}^n - 2T_i^n + T_{i-1}^n)$$
+
+Stability requires: Fo ≤ 0.5
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+def transient_1d_explicit(T0, Tinf, alpha, L, dx, dt, t_final):
+    """Solve 1D transient conduction with explicit method."""
+    Nx = int(L / dx) + 1
+    Nt = int(t_final / dt) + 1
+
+    Fo = alpha * dt / dx**2
+    if Fo > 0.5:
+        print(f"Warning: Fo = {Fo:.3f} > 0.5, unstable!")
+
+    T = np.ones(Nx) * T0
+    T[0] = Tinf   # Boundary condition
+    T[-1] = Tinf
+
+    history = [T.copy()]
+
+    for n in range(Nt - 1):
+        T_new = T.copy()
+        for i in range(1, Nx - 1):
+            T_new[i] = T[i] + Fo * (T[i+1] - 2*T[i] + T[i-1])
+        T = T_new
+        history.append(T.copy())
+
+    return np.array(history)
+
+# Example
+alpha = 1e-5   # Thermal diffusivity (m²/s)
+L = 0.1        # Length (m)
+dx = 0.005     # Spatial step
+dt = 0.5       # Time step
+t_final = 100  # Final time (s)
+
+T_history = transient_1d_explicit(T0=100, Tinf=20, alpha=alpha, L=L, dx=dx, dt=dt, t_final=t_final)
+
+# Plot at different times
+x = np.linspace(0, L, T_history.shape[1])
+plt.figure(figsize=(10, 5))
+for t_idx in [0, 10, 50, 100, 200]:
+    if t_idx < len(T_history):
+        plt.plot(x*100, T_history[t_idx], label=f't = {t_idx*dt:.0f} s')
+
+plt.xlabel('Position (cm)')
+plt.ylabel('Temperature (°C)')
+plt.title('Transient Conduction in a Slab')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
+```
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+- Lumped capacitance: valid when Bi < 0.1
+- Time constant τ characterises response speed
+- For Bi > 0.1, use analytical or numerical solutions
+- Explicit methods are simple but require small time steps
+:::
+
+## Exercises
+
+<!-- TODO: Add exercises -->

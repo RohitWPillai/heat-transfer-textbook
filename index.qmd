@@ -1,0 +1,198 @@
+# Preface {.unnumbered}
+
+This book started in room 3.07 of the Sanderson Building at the University of Edinburgh, midway through a Tuesday afternoon tutorial. I was teaching Thermofluids 3, and I kept running into the same problem: students could follow a derivation on the board, but they couldn't *feel* what the equations meant. Ask them to calculate a Nusselt number? Fine. Ask them whether doubling the flow rate matters more than doubling the pipe diameter? Blank stares. The equations were correct. The understanding was missing.
+
+So I started writing Python scripts to go alongside the lectures, not to replace the theory, but to make it tangible. Plot a boundary layer and watch it thicken. Change the thermal conductivity from copper to stainless steel and see the temperature profile flatten out in front of you, responding in ways that an equation on a whiteboard never quite communicates. Sweep the Reynolds number until the correlations break down. That changed everything. The students who ran the code developed a physical intuition that the students who only read the notes simply did not.
+
+This book is the result of that experiment, refined over several years of teaching.
+
+## What Makes This Different
+
+Every chapter contains executable Python code. Some of it runs right in your browser, no installation, nothing to configure, just click and go (that's [Pyodide](https://pyodide.org/) doing the heavy lifting). Other code blocks produce what I call the signature-style figures: visualisations designed from scratch with a custom thermal colormap, heat-flow arrows, and temperature pill labels that make the physics visible at a glance rather than buried in axis numbers. Here's a sample:
+
+```{python}
+#| label: fig-preface-sample
+#| fig-cap: "A taste of the signature figure style used throughout this book. Steady-state temperature profile through a plane wall: hot surface at 200°C, cold surface at 50°C, with the thermal gradient shown by both the curve fill and the wall colouring. Every chapter builds figures like this from the underlying physics."
+#| code-fold: true
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, Rectangle, FancyArrowPatch, Circle
+import matplotlib.patheffects as pe
+
+sys.path.insert(0, 'style_experiments')
+from figure_utils import PALETTE, THERMAL_CMAP, validate_figure
+
+plt.rcParams.update({
+    'text.usetex': True,
+    'font.family': 'serif',
+    'font.serif': ['Computer Modern Roman'],
+    'text.latex.preamble': r'\usepackage{amsmath}',
+})
+
+# --- Physical parameters ---
+T_hot = 200    # hot surface, °C
+T_cold = 50    # cold surface, °C
+L = 0.3        # wall thickness, m
+k = 1.4        # thermal conductivity, W/(m·K)
+x = np.linspace(0, L, 200)
+T = T_hot + (T_cold - T_hot) * x / L
+
+# --- Figure layout ---
+fig = plt.figure(figsize=(10, 4.5))
+
+# Left panel: physical slab diagram
+ax1 = fig.add_axes([0.04, 0.10, 0.38, 0.82])
+ax1.axis('off')
+
+# Draw the slab with thermal gradient (vertical strips)
+slab_left, slab_right = 1.0, 3.5
+slab_bottom, slab_top = 0.0, 4.0
+n_strips = 80
+for i in range(n_strips):
+    frac = 1.0 - i / (n_strips - 1)  # hot (1) at left, cold (0) at right
+    xl = slab_left + (slab_right - slab_left) * i / n_strips
+    xr = slab_left + (slab_right - slab_left) * (i + 1) / n_strips
+    color = THERMAL_CMAP(frac)
+    ax1.fill([xl, xl, xr, xr], [slab_bottom, slab_top, slab_top, slab_bottom],
+             color=color, edgecolor='none')
+
+# Shadow
+shadow = Rectangle((slab_left + 0.08, slab_bottom - 0.12), slab_right - slab_left,
+                    slab_top - slab_bottom, color='black', alpha=0.08, zorder=0)
+ax1.add_patch(shadow)
+
+# Slab border
+ax1.plot([slab_left, slab_left, slab_right, slab_right, slab_left],
+         [slab_bottom, slab_top, slab_top, slab_bottom, slab_bottom],
+         color=PALETTE['text'], linewidth=1.8, zorder=5)
+
+# Energy lines near hot surface
+for i in range(5):
+    y_pos = slab_bottom + (slab_top - slab_bottom) * (i + 0.5) / 5
+    x_wave = np.linspace(0, 0.18, 35)
+    y_wave = y_pos + 0.07 * np.sin(x_wave * 38) * (1 - x_wave / 0.18)
+    x_wave_pos = slab_left - x_wave
+    alpha = 0.45 - i * 0.07
+    ax1.plot(x_wave_pos, y_wave, color=PALETTE['hot'], alpha=alpha,
+             linewidth=1.8, solid_capstyle='round')
+
+# Thermal glow near hot surface
+for r, a in [(0.6, 0.04), (0.4, 0.06), (0.25, 0.08)]:
+    glow = Circle((slab_left, (slab_bottom + slab_top) / 2), r,
+                  color=PALETTE['glow_hot'], alpha=a, zorder=0)
+    ax1.add_patch(glow)
+
+# Heat flow arrow
+arrow = FancyArrowPatch((0.3, 2.0), (slab_left - 0.25, 2.0),
+                         arrowstyle='-|>', mutation_scale=18, linewidth=2.5,
+                         color=PALETTE['warm'],
+                         path_effects=[pe.Stroke(linewidth=5, foreground=PALETTE['glow_hot'], alpha=0.4),
+                                       pe.Normal()], zorder=10)
+ax1.add_patch(arrow)
+ax1.text(0.05, 2.45, r'$\dot{Q}$', fontsize=14, fontweight='bold',
+         color=PALETTE['warm'], ha='center')
+
+# Temperature pills
+ax1.text(slab_left - 0.45, 4.45, r'$T_1$', fontsize=14, ha='center', va='center',
+         color='white', fontweight='bold',
+         bbox=dict(boxstyle='round,pad=0.3', facecolor=PALETTE['hot'], edgecolor='none'),
+         zorder=10)
+ax1.text(slab_left - 0.45, 4.9, r'\textit{hot surface}', fontsize=9, ha='center',
+         color=PALETTE['hot'])
+
+ax1.text(slab_right + 0.45, -0.4, r'$T_2$', fontsize=14, ha='center', va='center',
+         color='white', fontweight='bold',
+         bbox=dict(boxstyle='round,pad=0.3', facecolor=PALETTE['cold'], edgecolor='none'),
+         zorder=10)
+ax1.text(slab_right + 0.45, -1.0, r'\textit{cold surface}', fontsize=9, ha='center',
+         color=PALETTE['cold'])
+
+# Dimension annotation
+ax1.annotate('', xy=(slab_right, -1.6), xytext=(slab_left, -1.6),
+             arrowprops=dict(arrowstyle='<->', color=PALETTE['text'], linewidth=1.2))
+ax1.text((slab_left + slab_right) / 2, -1.95, r'$L = 0.3$ m', fontsize=11,
+         ha='center', color=PALETTE['text'])
+
+ax1.set_xlim(-0.5, 5.0)
+ax1.set_ylim(-2.6, 5.6)
+
+# Right panel: temperature profile plot
+ax2 = fig.add_axes([0.54, 0.15, 0.42, 0.78])
+ax2.set_facecolor(PALETTE['light_bg'])
+
+# Gradient fill under curve
+for i in range(len(x) - 1):
+    frac = (T[i] - T_cold) / (T_hot - T_cold)
+    color = THERMAL_CMAP(frac)
+    ax2.fill_between(x[i:i+2] * 100, T_cold, T[i:i+2], color=color, alpha=0.25)
+
+# Main curve with glow
+ax2.plot(x * 100, T, color=PALETTE['text'], linewidth=2.5,
+         path_effects=[pe.Stroke(linewidth=4.5, foreground='white', alpha=0.7),
+                       pe.Normal()], zorder=5)
+
+# Endpoint markers
+ax2.scatter([0], [T_hot], s=80, color=PALETTE['hot'], zorder=10,
+            edgecolors='white', linewidths=2)
+ax2.scatter([L * 100], [T_cold], s=80, color=PALETTE['cold'], zorder=10,
+            edgecolors='white', linewidths=2)
+
+# Equation box (placed in upper-right empty space, away from the line)
+eq_text = r'$T(x) = T_1 + \dfrac{T_2 - T_1}{L}\, x$'
+eq_box = FancyBboxPatch((15, 175), 14, 30, boxstyle='round,pad=3',
+                         facecolor='white', edgecolor=PALETTE['text'],
+                         linewidth=1, alpha=0.92, zorder=6)
+ax2.add_patch(eq_box)
+ax2.text(22, 190, eq_text, fontsize=11, ha='center', va='center',
+         color=PALETTE['text'], zorder=7)
+
+# Axis styling
+ax2.set_xlabel(r'Position, $x$ (cm)', fontsize=11, color=PALETTE['text'])
+ax2.set_ylabel(r'Temperature, $T$ ($^\circ$C)', fontsize=11, color=PALETTE['text'])
+ax2.set_xlim(-3, 35)
+ax2.set_ylim(30, 220)
+ax2.spines['top'].set_visible(False)
+ax2.spines['right'].set_visible(False)
+ax2.spines['left'].set_color(PALETTE['text'])
+ax2.spines['bottom'].set_color(PALETTE['text'])
+ax2.spines['left'].set_linewidth(1.5)
+ax2.spines['bottom'].set_linewidth(1.5)
+ax2.tick_params(colors=PALETTE['text'], width=1.5, labelsize=10)
+ax2.yaxis.grid(True, linestyle='-', alpha=0.5, color='white', linewidth=2)
+ax2.set_axisbelow(True)
+
+validate_figure(fig)
+plt.show()
+```
+
+The code is not supplementary. It *is* the explanation, or at least half of it. When I write "the thermal boundary layer is thinner than the velocity boundary layer for Pr > 1", there's a plot right there that shows you why. Introduce a new correlation? There's code that lets you test it against your own parameters, break it, push it past its range of validity.
+
+One more thing: the book is open-source. I remember being an undergraduate and spending £80 on a textbook I opened three times. That left a mark. So this one is free, the code is on [GitHub](https://github.com/rohitpillai/heat-transfer-textbook), and you can read it in your browser, fork it, or download the whole thing. If you find an error or think an explanation could be clearer, you can open a pull request. I mean that.
+
+## Prerequisites
+
+I assume you've seen the following before, even if some of it is rusty:
+
+- **Thermodynamics**: You should know what an energy balance is and be comfortable with the first and second laws. If "enthalpy" doesn't ring a bell, review your thermo notes first.
+- **Calculus**: Differentiation, integration, and enough ODEs to solve a first-order equation without panicking.
+- **Fluid mechanics**: Viscosity, laminar vs. turbulent flow, and why a fluid's velocity is zero at a solid surface (the no-slip condition). You don't need to remember every detail of pipe flow, but Reynolds number should be a familiar name.
+- **Python**: Variables, functions, loops, NumPy arrays. If you've never written a line of Python, Chapter 3 will get you started, but you'll learn faster if you've at least seen a `for` loop before.
+
+Partial differential equations show up once we reach conduction. Don't worry. I'm not going to derive separation of variables from first principles or prove uniqueness theorems. We'll set up the heat equation, look at what the solutions mean physically (why does a suddenly-heated slab cool exponentially? why does a fin's temperature decay with distance?), and let Python handle the number-crunching. If you've never taken a PDE course, you'll manage.
+
+## How to Navigate
+
+Four parts: Introduction, Convection, Conduction, and Radiation. The ordering is deliberate. I start with convection because students encounter it first in practice (cooling electronics, sizing heat exchangers) and because it builds directly on fluid mechanics, which is fresh in most students' minds. Conduction follows, where we slow down and spend time with partial differential equations and analytical solutions. Radiation comes last.
+
+That said, the chapters are reasonably self-contained. If your course covers conduction before convection (many do), you can jump to Part 3 without losing the thread. For details on notation conventions and setting up your Python environment, see [How to Use This Book](how-to-use.qmd).
+
+## Acknowledgements
+
+This book grew out of lecture materials developed for Thermofluids 3 at the University of Edinburgh. The explanations reflect years of student questions, tutorial discussions, and feedback that shaped how I teach this material.
+
+## License and Feedback
+
+This work is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Code is licensed under MIT.
+
+Found an error? Have a suggestion? Please [open an issue](https://github.com/rohitpillai/heat-transfer-textbook/issues) on GitHub.

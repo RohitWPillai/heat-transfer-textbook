@@ -1,0 +1,101 @@
+# Radiative Properties
+
+::: {.callout-note}
+## Learning Objectives
+After this chapter, you will be able to:
+
+- Define emissivity, absorptivity, and reflectivity
+- Apply Kirchhoff's law
+- Understand spectral and directional dependencies
+:::
+
+## Introduction
+
+Real surfaces don't behave like perfect blackbodies. Their radiative properties depend on material, surface finish, wavelength, and direction.
+
+<!-- TODO: Add content from Lecture 9 transcripts -->
+
+## Absorptivity, Reflectivity, Transmissivity
+
+For irradiation $G$ incident on a surface:
+
+$$\alpha + \rho + \tau = 1$$
+
+- $\alpha$: absorptivity (fraction absorbed)
+- $\rho$: reflectivity (fraction reflected)
+- $\tau$: transmissivity (fraction transmitted)
+
+For **opaque** surfaces ($\tau = 0$):
+$$\alpha + \rho = 1$$
+
+## Emissivity
+
+$$\varepsilon = \frac{E}{E_b}$$
+
+| Surface | ε |
+|---------|---:|
+| Polished aluminium | 0.04 |
+| Oxidised aluminium | 0.2 |
+| Black paint | 0.95 |
+| Human skin | 0.95 |
+| Snow | 0.8 |
+
+## Kirchhoff's Law
+
+At thermal equilibrium and for a given wavelength and direction:
+
+$$\varepsilon_\lambda = \alpha_\lambda$$
+
+For **gray surfaces** (properties independent of wavelength):
+
+$$\varepsilon = \alpha$$
+
+## Spectral Properties
+
+Properties can vary significantly with wavelength:
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Example: selective surface (solar absorber)
+wavelengths = np.linspace(0.1, 20, 500)
+
+# Idealized selective surface: high α in solar range, low ε in IR
+alpha = np.where(wavelengths < 3, 0.95, 0.1)
+
+plt.figure(figsize=(10, 4))
+plt.fill_between(wavelengths, alpha, alpha=0.3)
+plt.plot(wavelengths, alpha, 'b-', linewidth=2)
+plt.axvline(x=3, color='red', linestyle='--', label='Solar/IR boundary')
+plt.xlabel('Wavelength (μm)')
+plt.ylabel('Absorptivity α')
+plt.title('Selective Surface for Solar Collection')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.ylim(0, 1.1)
+plt.show()
+```
+
+## Directional Properties
+
+Emissivity often varies with angle from normal:
+
+$$\varepsilon(\theta) \neq \varepsilon(0)$$
+
+Conductors: ε increases with angle
+Non-conductors: ε relatively constant then drops near 90°
+
+## Summary
+
+::: {.callout-tip}
+## Key Takeaways
+- $\alpha + \rho + \tau = 1$ (energy conservation)
+- Kirchhoff: $\varepsilon_\lambda = \alpha_\lambda$ at equilibrium
+- Gray body: $\varepsilon = \alpha$ (wavelength independent)
+- Properties depend on material, surface finish, wavelength, direction
+:::
+
+## Exercises
+
+<!-- TODO: Add exercises -->
