@@ -9,6 +9,7 @@ __pycache__/
 *.pyc
 *.egg-info/
 .pytest_cache/
+.ipynb_checkpoints/
 
 # OS / editor
 .DS_Store
@@ -20,3 +21,49 @@ __pycache__/
 *.log
 *.tex
 *.toc
+
+# === Development tooling (not part of the book) ===
+
+# Claude / FEW pipeline
+sdk/
+.claude/
+.claude-agents/
+reviews/
+handoffs/
+
+# Planning and project docs
+BOOK_PLAN.md
+ILLUSTRATION_GUIDE.md
+WRITING_GUIDELINES.md
+PROJECT_CONTEXT.md
+PROJECT_STATUS.md
+PRE-PUBLISH-CHECKLIST.md
+HANDOFF.md
+source-materials-summary.md
+need-for-SDK.md
+
+# One-off scripts
+merge_transcripts.py
+test_single_video.py
+transcribe_videos.py
+
+# Transcripts (private lecture content)
+transcripts/
+
+# Bulk source images (not used in book)
+images/ch01/extracted/
+images/ch01/originals/
+images/ch01/stirling-[1-4]-*
+images/ch02/
+
+# Archival / comparison snapshots
+part-2-convection/comparison/
+
+# Orphan chapter not in _quarto.yml
+part-1-introduction/03-python-setup.qmd
+
+# Style experiments (only figure_utils.py is tracked)
+style_experiments/signature_style_final.py
+style_experiments/signature_style.py
+style_experiments/compare_styles.py
+style_experiments/*.png
