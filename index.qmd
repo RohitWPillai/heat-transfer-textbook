@@ -168,7 +168,7 @@ plt.show()
 
 The code is not supplementary. It *is* the explanation, or at least half of it. When I write "the thermal boundary layer is thinner than the velocity boundary layer for Pr > 1", there's a plot right there that shows you why. Introduce a new correlation? There's code that lets you test it against your own parameters, break it, push it past its range of validity.
 
-One more thing: the book is open-source. I remember being an undergraduate and spending £80 on a textbook I opened three times. That left a mark. So this one is free, the code is on [GitHub](https://github.com/rohitpillai/heat-transfer-textbook), and you can read it in your browser, fork it, or download the whole thing. If you find an error or think an explanation could be clearer, you can open a pull request. I mean that.
+One more thing: the book is open-source. I remember being an undergraduate and spending £80 on a textbook I opened three times. That left a mark. So this one is free, the code is on [GitHub](https://github.com/RohitWPillai/heat-transfer-textbook), and you can read it in your browser, fork it, or download the whole thing. If you find an error or think an explanation could be clearer, you can open a pull request. I mean that.
 
 ## Prerequisites
 
@@ -195,4 +195,4 @@ This book grew out of lecture materials developed for Thermofluids 3 at the Univ
 
 This work is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Code is licensed under MIT.
 
-Found an error? Have a suggestion? Please [open an issue](https://github.com/rohitpillai/heat-transfer-textbook/issues) on GitHub.
+Found an error? Have a suggestion? Please [open an issue](https://github.com/RohitWPillai/heat-transfer-textbook/issues) on GitHub.

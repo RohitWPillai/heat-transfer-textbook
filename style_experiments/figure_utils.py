@@ -787,7 +787,7 @@ def validate_figure(fig, strict=True):
     # from drawing elements in ax.axis('off') figures, but labels are
     # intentionally placed outside those elements (they annotate from outside).
     # Real edge/clipping issues are caught by check_margins, check_frame_bounds,
-    # and Ebert's visual review of per-figure context screenshots.
+    # and visual review of per-figure context screenshots.
 
     # Deduplicate (margin and frame-bound checkers can flag the same element)
     issues = list(dict.fromkeys(issues))
