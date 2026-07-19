@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 In steady state, temperatures don't change with time: $\partial T/\partial t = 0$. This simplifies analysis considerably.
 
-<!-- TODO: Add content from Lecture 6 transcripts -->
 
 ## Plane Wall
 
@@ -88,4 +87,3 @@ Typical values: $10^{-4}$ to $10^{-2}$ m²·K/W
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

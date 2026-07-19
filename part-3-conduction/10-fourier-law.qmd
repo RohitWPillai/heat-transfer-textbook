@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 Conduction is heat transfer through a medium without bulk motion. At the molecular level, it's the transfer of kinetic energy from more energetic to less energetic particles.
 
-<!-- TODO: Add content from Lecture 6 transcripts -->
 
 ## Fourier's Law
 
@@ -74,4 +73,3 @@ where $\alpha = k/(\rho c_p)$ is the **thermal diffusivity**.
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

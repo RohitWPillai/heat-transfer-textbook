@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 Real heat transfer problems often involve time-varying temperatures. How long does it take for an object to cool? How does temperature vary spatially during heating?
 
-<!-- TODO: Add content from Lecture 8 transcripts -->
 
 ## Lumped Capacitance Method
 
@@ -144,4 +143,3 @@ plt.show()
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

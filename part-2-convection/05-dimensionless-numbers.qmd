@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 Dimensionless numbers are the language of heat transfer correlations. They allow us to collapse complex physics into simple relationships that work across scales.
 
-<!-- TODO: Add content from Lecture 3 transcripts -->
 
 ## Reynolds Number
 
@@ -68,7 +67,6 @@ $$\text{Nu} = \frac{hL}{k}$$
 
 **Physical meaning**: Ratio of convective to conductive heat transfer.
 
-<!-- TODO: More explanation -->
 
 ## Other Important Numbers
 
@@ -82,7 +80,6 @@ $$\text{Ra} = \text{Gr} \cdot \text{Pr}$$
 
 ## How Correlations Work
 
-<!-- TODO: Form of correlations, Nu = f(Re, Pr) -->
 
 ## Summary
 
@@ -96,4 +93,3 @@ $$\text{Ra} = \text{Gr} \cdot \text{Pr}$$
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 Fins increase surface area for convection. They're everywhere: heat sinks, radiators, air conditioning coils.
 
-<!-- TODO: Add content from Lecture 7 transcripts -->
 
 ## The Fin Equation
 
@@ -94,4 +93,3 @@ Rule of thumb: $\varepsilon_f > 2$ for fins to be worthwhile.
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

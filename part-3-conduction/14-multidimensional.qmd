@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 Real objects rarely have uniform 1D temperature distributions. Corners, edges, and complex geometries require multi-dimensional analysis.
 
-<!-- TODO: Add content from Lecture 8 transcripts -->
 
 ## When Is Multi-D Necessary?
 
@@ -96,4 +95,3 @@ plt.show()
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

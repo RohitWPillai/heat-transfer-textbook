@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 External flow—where fluid flows over and around an object—is common in engineering: aircraft wings, heat sinks, pipelines in wind.
 
-<!-- TODO: Add content from Lecture 3 transcripts -->
 
 ## Flat Plate
 
@@ -46,15 +45,12 @@ print(f"Nu = {Nu:.1f}")
 
 ## Cylinder in Cross-Flow
 
-<!-- TODO: Churchill-Bernstein correlation -->
 
 ## Sphere
 
-<!-- TODO: Whitaker correlation -->
 
 ## Flow Over Tube Banks
 
-<!-- TODO: Aligned vs staggered arrangements -->
 
 ## Summary
 
@@ -67,4 +63,3 @@ print(f"Nu = {Nu:.1f}")
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 Now we combine view factors with surface properties to calculate actual heat transfer between surfaces.
 
-<!-- TODO: Add content from Lecture 10 transcripts -->
 
 ## Exchange Between Blackbodies
 
@@ -84,4 +83,3 @@ for $N$ identical shields.
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

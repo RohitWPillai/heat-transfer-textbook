@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 Internal flow—inside pipes, ducts, and channels—is ubiquitous: HVAC systems, heat exchangers, blood vessels.
 
-<!-- TODO: Add content from Lecture 4 transcripts -->
 
 ## Flow Development
 
@@ -58,11 +57,9 @@ print(f"Nu = {Nu:.1f}")
 
 ## Constant Wall Temperature
 
-<!-- TODO: Log-mean temperature difference -->
 
 ## Constant Heat Flux
 
-<!-- TODO: Linear temperature rise -->
 
 ## Summary
 
@@ -75,4 +72,3 @@ print(f"Nu = {Nu:.1f}")
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

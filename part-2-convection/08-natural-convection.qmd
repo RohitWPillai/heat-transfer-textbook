@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 When there's no fan or pump, temperature differences themselves drive flow through buoyancy. This is **natural** (or **free**) convection.
 
-<!-- TODO: Add content from Lecture 3.5 transcripts -->
 
 ## The Driving Force: Buoyancy
 
@@ -33,15 +32,12 @@ $$\text{Ra} = \text{Gr} \cdot \text{Pr} = \frac{g \beta \Delta T L^3}{\nu \alpha
 
 ## Vertical Surfaces
 
-<!-- TODO: Correlations -->
 
 ## Horizontal Surfaces
 
-<!-- TODO: Hot side up vs hot side down -->
 
 ## Enclosures
 
-<!-- TODO: Cavities, double-pane windows -->
 
 ## Summary
 
@@ -54,4 +50,3 @@ $$\text{Ra} = \text{Gr} \cdot \text{Pr} = \frac{g \beta \Delta T L^3}{\nu \alpha
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

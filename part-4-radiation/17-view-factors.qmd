@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 The **view factor** $F_{i \to j}$ is the fraction of radiation leaving surface $i$ that reaches surface $j$. It's purely geometric.
 
-<!-- TODO: Add content from Lecture 10 transcripts -->
 
 ## Definition
 
@@ -71,7 +70,6 @@ print(f"View factor F_12 = {F:.3f}")
 
 ### Perpendicular Rectangles
 
-<!-- TODO: Add formula and code -->
 
 ## View Factor Algebra
 
@@ -91,4 +89,3 @@ $$F_{1 \to (2+3)} = F_{1 \to 2} + F_{1 \to 3}$$
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

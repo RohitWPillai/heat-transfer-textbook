@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 Real surfaces don't behave like perfect blackbodies. Their radiative properties depend on material, surface finish, wavelength, and direction.
 
-<!-- TODO: Add content from Lecture 9 transcripts -->
 
 ## Absorptivity, Reflectivity, Transmissivity
 
@@ -98,4 +97,3 @@ Non-conductors: ε relatively constant then drops near 90°
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 In most real situations, heat transfer occurs by multiple modes simultaneously. A hot surface loses heat by both convection and radiation.
 
-<!-- TODO: Add content from Lecture 11 transcripts -->
 
 ## Radiation Heat Transfer Coefficient
 
@@ -111,4 +110,3 @@ print(f"Reduction factor: {Q_black/Q_rad:.0f}×")
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

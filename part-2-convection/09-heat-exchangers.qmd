@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 Heat exchangers are devices that transfer heat between two fluids. They're everywhere: car radiators, power plants, HVAC, refrigerators.
 
-<!-- TODO: Add content from Lecture 5 transcripts -->
 
 ## Types of Heat Exchangers
 
@@ -102,4 +101,3 @@ print(f"Effectiveness ε = {eps:.3f}")
 
 ## Exercises
 
-<!-- TODO: Add exercises -->

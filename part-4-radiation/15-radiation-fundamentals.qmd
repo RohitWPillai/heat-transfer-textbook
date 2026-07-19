@@ -13,7 +13,6 @@ After this chapter, you will be able to:
 
 Radiation is fundamentally different from conduction and convection: it requires no medium and travels at the speed of light. All matter above absolute zero emits thermal radiation.
 
-<!-- TODO: Add content from Lecture 9 transcripts -->
 
 ## Electromagnetic Spectrum
 
@@ -98,4 +97,3 @@ where $\varepsilon$ is the **emissivity** (0 < ε ≤ 1).
 
 ## Exercises
 
-<!-- TODO: Add exercises -->
